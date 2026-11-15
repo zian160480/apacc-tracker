@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APACC Evidence Tracker PKB</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f2f7;
+  min-height: 100vh;
+  color: #1a1a2e;
+}
+
+/* ══ LOGIN ══ */
+#login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0d1b2a 0%, #1b4f72 50%, #2e86ab 100%);
+  padding: 20px;
+}
+.login-card {
+  background: white;
+  border-radius: 18px;
+  padding: 44px 38px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+  text-align: center;
+}
+.login-logo { font-size: 52px; margin-bottom: 10px; }
+.login-card h1 { font-size: 20px; color: #0d1b2a; margin-bottom: 4px; font-weight: 700; }
+.login-card .sub { font-size: 13px; color: #888; margin-bottom: 28px; }
+.role-tabs { display: flex; border: 2px solid #1b4f72; border-radius: 8px; overflow: hidden; margin-bottom: 22px; }
+.role-tab { flex: 1; padding: 10px; background: white; border: none; cursor: pointer; font-size: 13px; font-weight: bold; color: #1b4f72; transition: all 0.2s; }
+.role-tab.active { background: #1b4f72; color: white; }
+.form-field { margin-bottom: 14px; text-align: left; }
+.form-field label { display: block; font-size: 12px; font-weight: bold; color: #555; margin-bottom: 5px; }
+.form-field input, .form-field select {
+  width: 100%; padding: 11px 13px; border: 1.5px solid #ddd;
+  border-radius: 8px; font-size: 14px; transition: border 0.2s;
+}
+.form-field input:focus, .form-field select:focus { border-color: #1b4f72; outline: none; }
+.btn-primary {
+  width: 100%; padding: 13px; background: #1b4f72; color: white;
+  border: none; border-radius: 8px; font-size: 15px; font-weight: bold;
+  cursor: pointer; transition: background 0.2s; margin-top: 4px;
+}
+.btn-primary:hover { background: #154060; }
+.login-msg { font-size: 13px; margin-top: 10px; display: none; }
+.login-msg.err { color: #e74c3c; }
+.login-msg.ok  { color: #27ae60; }
+
+/* ══ APP ══ */
+#app-screen { display: none; }
+.topbar {
+  background: linear-gradient(135deg, #0d1b2a, #1b4f72);
+  color: white; padding: 14px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 200;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+}
+.topbar-title { font-size: 16px; font-weight: 700; }
+.topbar-sub { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.user-chip { background: rgba(255,255,255,0.18); border-radius: 20px; padding: 5px 14px; font-size: 13px; font-weight: bold; }
+.btn-logout { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.35); color: white; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.btn-logout:hover { background: rgba(255,255,255,0.25); }
+
+/* ══ NAV TABS ══ */
+.nav-bar {
+  background: white; border-bottom: 2px solid #e8ecf4;
+  display: flex; overflow-x: auto; padding: 0 24px;
+  position: sticky; top: 60px; z-index: 190;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.nav-tab {
+  padding: 14px 18px; font-size: 13px; font-weight: 600;
+  color: #888; cursor: pointer; border-bottom: 3px solid transparent;
+  white-space: nowrap; transition: all 0.2s;
+}
+.nav-tab:hover { color: #1b4f72; }
+.nav-tab.active { color: #1b4f72; border-bottom-color: #1b4f72; }
+
+/* ══ CONTENT ══ */
+.content { max-width: 1050px; margin: 24px auto; padding: 0 20px 60px; }
+
+/* ══ SECTION CARD ══ */
+.card {
+  background: white; border-radius: 14px; padding: 24px;
+  margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.card h2 { font-size: 16px; color: #0d1b2a; margin-bottom: 4px; }
+.card .hint { font-size: 12px; color: #999; margin-bottom: 16px; }
+
+/* ══ DASHBOARD CARDS ══ */
+.dash-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px; margin-bottom: 22px;
+}
+.dash-stat {
+  background: white; border-radius: 12px; padding: 18px;
+  text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+.dash-stat .num { font-size: 30px; font-weight: 800; }
+.dash-stat .lbl { font-size: 12px; color: #888; margin-top: 3px; }
+.dash-stat.blue  .num { color: #1b4f72; }
+.dash-stat.green .num { color: #27ae60; }
+.dash-stat.orange .num { color: #e67e22; }
+.dash-stat.red   .num { color: #e74c3c; }
+.dash-stat.gold  .num { color: #c0932e; }
+
+/* ══ PROGRESS BAR ══ */
+.prog-wrap { margin: 6px 0 14px; }
+.prog-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+.prog-track { background: #eee; border-radius: 99px; height: 12px; overflow: hidden; }
+.prog-fill   { height: 100%; border-radius: 99px; transition: width 0.6s ease; }
+.prog-red    { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+.prog-orange { background: linear-gradient(90deg, #e67e22, #d35400); }
+.prog-yellow { background: linear-gradient(90deg, #f1c40f, #d4ac0d); }
+.prog-green  { background: linear-gradient(90deg, #27ae60, #1e8449); }
+.prog-diamond { background: linear-gradient(90deg, #2e86ab, #8e44ad); }
+
+/* ══ BADGE PINGAT ══ */
+.medal-badge {
+  display: inline-block; border-radius: 20px; padding: 3px 14px;
+  font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+}
+.medal-none       { background: #f0f0f0; color: #999; }
+.medal-bronze     { background: #fde8d0; color: #7d4a10; border: 1px solid #cd7f32; }
+.medal-bronzeplus { background: #fbd5b0; color: #6b3a08; border: 1px solid #b5651d; font-weight:800; }
+.medal-silver     { background: #e8ecf0; color: #4a5568; border: 1px solid #aab0b8; }
+.medal-gold       { background: #fef9e7; color: #7d6608; border: 1px solid #d4ac0d; }
+.medal-platinum   { background: linear-gradient(135deg, #e8f4f8, #f0e8f8); color: #1a2a6c; border: 1px solid #2e86ab; font-size: 13px; }
+
+/* ══ TABLE ══ */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: #f5f7fa; padding: 10px 12px; text-align: left; font-weight: 700; color: #555; border-bottom: 2px solid #e8ecf4; }
+td { padding: 10px 12px; border-bottom: 1px solid #f0f2f7; vertical-align: middle; }
+tr:hover td { background: #fafbff; }
+
+/* ══ STATUS BADGE ══ */
+.badge { display: inline-block; border-radius: 10px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+.badge-lengkap   { background: #d4edda; color: #155724; }
+.badge-separa    { background: #fff3cd; color: #856404; }
+.badge-tiada     { background: #f8d7da; color: #721c24; }
+.badge-semak     { background: #d1ecf1; color: #0c5460; }
+
+/* ══ BTN ══ */
+.btn { padding: 7px 16px; border-radius: 7px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+.btn-blue   { background: #1b4f72; color: white; }
+.btn-blue:hover { background: #154060; }
+.btn-green  { background: #27ae60; color: white; }
+.btn-green:hover { background: #1e8449; }
+.btn-orange { background: #e67e22; color: white; }
+.btn-orange:hover { background: #ca6f1e; }
+.btn-red    { background: #e74c3c; color: white; }
+.btn-red:hover { background: #c0392b; }
+.btn-outline { background: transparent; border: 1.5px solid #1b4f72; color: #1b4f72; }
+.btn-outline:hover { background: #eef4f8; }
+.btn-sm { padding: 5px 11px; font-size: 12px; }
+
+/* ══ KRITERIA ACCORDION ══ */
+.kriteria-block { border: 1.5px solid #e0e6f0; border-radius: 12px; margin-bottom: 14px; overflow: hidden; }
+.kriteria-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; cursor: pointer; background: #f8faff;
+  border-bottom: 1.5px solid #e0e6f0; transition: background 0.2s;
+}
+.kriteria-header:hover { background: #eef4fb; }
+.kriteria-header.open { background: #e8f0fa; }
+.krit-title { font-size: 14px; font-weight: 700; color: #0d1b2a; }
+.krit-sub   { font-size: 12px; color: #888; margin-top: 2px; }
+.krit-right { display: flex; align-items: center; gap: 12px; text-align: right; }
+.krit-skor  { font-size: 18px; font-weight: 800; color: #1b4f72; }
+.krit-max   { font-size: 11px; color: #aaa; }
+.kriteria-body { display: none; padding: 16px 20px; background: white; }
+.kriteria-body.open { display: block; }
+
+/* ══ INDIKATOR ROW ══ */
+.ind-row {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  gap: 10px; align-items: center; padding: 10px 0;
+  border-bottom: 1px solid #f0f2f7;
+  font-size: 13px;
+}
+.ind-row:last-child { border-bottom: none; }
+.ind-kod  { font-weight: 700; color: #1b4f72; font-size: 12px; }
+.ind-nama { font-size: 12px; color: #444; margin-top: 2px; }
+
+/* ══ PREDICTION ══ */
+.pred-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.pred-card { border-radius: 12px; padding: 20px; }
+.pred-card.current { background: #eef4fb; border: 1.5px solid #2e86ab; }
+.pred-card.target  { background: #fef9e7; border: 1.5px solid #d4ac0d; }
+.pred-card.diamond { background: linear-gradient(135deg, #e8f4f8, #f5eeff); border: 1.5px solid #8e44ad; }
+.pred-title { font-size: 13px; font-weight: 700; color: #555; margin-bottom: 8px; }
+.pred-score { font-size: 40px; font-weight: 900; }
+.pred-out   { font-size: 14px; color: #888; }
+.pred-pct   { font-size: 13px; color: #aaa; margin-top: 4px; }
+.gap-meter  { margin-top: 18px; }
+.gap-label  { font-size: 13px; font-weight: 700; color: #444; margin-bottom: 8px; }
+
+/* ══ UPLOAD AREA ══ */
+.upload-area {
+  border: 2px dashed #b0c4de; border-radius: 10px; padding: 16px;
+  text-align: center; color: #888; font-size: 13px; cursor: pointer;
+  transition: all 0.2s; background: #f8faff;
+}
+.upload-area:hover { border-color: #1b4f72; background: #eef4fb; color: #1b4f72; }
+
+/* ══ MODAL ══ */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55); z-index: 999;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: white; border-radius: 16px; padding: 28px 30px;
+  width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.modal-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #0d1b2a; }
+.modal-close { float: right; cursor: pointer; font-size: 20px; color: #aaa; line-height: 1; }
+.modal-close:hover { color: #e74c3c; }
+
+/* ══ RESPONSIVE ══ */
+@media (max-width: 700px) {
+  .pred-grid { grid-template-columns: 1fr; }
+  .ind-row { grid-template-columns: 1fr 1fr; }
+  .dash-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media print {
+  .topbar, .nav-bar, .btn, .btn-primary { display: none !important; }
+  body { background: white; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════
+     LOGIN
+════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">🏆</div>
+    <h1>APACC Evidence Tracker</h1>
+    <p class="sub">Pusat Kemahiran Bersepadu — Pemantauan Akreditasi 2027</p>
+
+    <div class="role-tabs">
+      <button class="role-tab active" id="tab-admin"   onclick="switchRole('admin')">🛡️ Admin</button>
+      <button class="role-tab" id="tab-ketua"          onclick="switchRole('ketua')">👤 Ketua Kriteria</button>
+      <button class="role-tab" id="tab-ahli"           onclick="switchRole('ahli')">📋 Ahli Team</button>
+      <button class="role-tab" id="tab-auditor"        onclick="switchRole('auditor')">🔍 Auditor</button>
+    </div>
+
+    <div class="form-field">
+      <label id="lbl-uid">ID Pengguna</label>
+      <input type="text" id="login-user" placeholder="Masukkan ID anda">
+    </div>
+    <div class="form-field">
+      <label>Kata Laluan</label>
+      <input type="password" id="login-pass" placeholder="Kata laluan" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-primary" id="btn-login-masuk" onclick="doLogin()">Log Masuk</button>
+    <div class="login-msg err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     APP
+════════════════════════════════ -->
+<div id="app-screen">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">🏆 APACC Evidence Tracker PKB</div>
+      <div class="topbar-sub" id="topbar-sub">Pemantauan Akreditasi Diamond 2027</div>
+    </div>
+    <div class="topbar-right">
+      <span class="user-chip" id="user-chip">—</span>
+      <button class="btn-logout" onclick="doLogout()">Log Keluar</button>
+    </div>
+  </div>
+
+  <!-- NAV TABS -->
+  <div class="nav-bar" id="nav-bar">
+    <div class="nav-tab active" onclick="showPage('pg-dashboard')">📊 Dashboard</div>
+    <div class="nav-tab" onclick="showPage('pg-checker')">✅ Evidence Checker</div>
+    <div class="nav-tab" onclick="showPage('pg-prediction')">🔮 Prediction</div>
+    <div class="nav-tab auditor-only" onclick="showPage('pg-audit')" style="display:none;">📝 Borang Audit</div>
+    <div class="nav-tab admin-only" onclick="showPage('pg-pengguna')" style="display:none;">👥 Pengguna</div>
+    <div class="nav-tab admin-only" onclick="showPage('pg-laporan')" style="display:none;">📄 Laporan</div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══════════════════════════════
+         PAGE: DASHBOARD
+    ══════════════════════════════ -->
+    <div id="pg-dashboard" class="page">
+
+      <!-- Stat Cards -->
+      <div class="dash-grid" id="dash-stats">
+        <div class="dash-stat blue"><div class="num" id="st-jumlah">—</div><div class="lbl">Jumlah Indikator</div></div>
+        <div class="dash-stat green"><div class="num" id="st-lengkap">—</div><div class="lbl">Bukti Lengkap</div></div>
+        <div class="dash-stat orange"><div class="num" id="st-separa">—</div><div class="lbl">Separa Lengkap</div></div>
+        <div class="dash-stat red"><div class="num" id="st-tiada">—</div><div class="lbl">Tiada Bukti</div></div>
+        <div class="dash-stat gold"><div class="num" id="st-pct">—%</div><div class="lbl">% Pematuhan</div></div>
+      </div>
+
+      <!-- Progress Keseluruhan -->
+      <div class="card">
+        <h2>📊 Progress Keseluruhan</h2>
+        <div class="hint">Peratus pematuhan bukti dan kemajuan markah keseluruhan.</div>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;margin-top:10px;">
+          <!-- Progress % Pematuhan -->
+          <div style="flex:1;min-width:200px;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:6px;">
+              <span>% Bukti Lengkap</span>
+              <span id="prog-pct-label" style="color:#1b4f72;">—%</span>
+            </div>
+            <div class="prog-track" style="height:18px;">
+              <div class="prog-fill prog-green" id="prog-pct-bar" style="width:0%;"></div>
+            </div>
+            <div style="font-size:11px;color:#aaa;margin-top:4px;" id="prog-pct-sub">— daripada — indikator lengkap</div>
+          </div>
+          <!-- Progress Markah -->
+          <div style="flex:1;min-width:200px;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:6px;">
+              <span>Markah Terkumpul</span>
+              <span id="prog-markah-label" style="color:#1b4f72;">— / 1009</span>
+            </div>
+            <div class="prog-track" style="height:18px;">
+              <div class="prog-fill prog-diamond" id="prog-markah-bar" style="width:0%;"></div>
+            </div>
+            <div style="font-size:11px;color:#aaa;margin-top:4px;" id="prog-markah-sub">— % daripada markah maksimum</div>
+          </div>
+        </div>
+        <!-- Per Kriteria Progress -->
+        <div style="margin-top:20px;" id="prog-per-kriteria"></div>
+      </div>
+
+      <!-- Prediction Summary -->
+      <div class="card" id="card-pred-summary">
+        <h2>🔮 Ramalan Pingat Semasa</h2>
+        <div class="hint">Berdasarkan markah semasa yang dimasukkan oleh semua team.</div>
+        <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; margin-top:8px;">
+          <div>
+            <div style="font-size:12px; color:#888;">Skor Semasa</div>
+            <div style="font-size:36px; font-weight:900; color:#1b4f72;" id="pred-skor-semasa">—</div>
+            <div style="font-size:12px; color:#aaa;" id="pred-skor-maks">/ — markah</div>
+          </div>
+          <div style="flex:1; min-width:180px;">
+            <div style="font-size:12px; color:#888; margin-bottom:6px;">Kemajuan ke Diamond 💎</div>
+            <div class="prog-track"><div class="prog-fill prog-diamond" id="pred-bar" style="width:0%"></div></div>
+            <div style="font-size:11px; color:#aaa; margin-top:4px;" id="pred-bar-label">—</div>
+          </div>
+          <div>
+            <div style="font-size:12px; color:#888; margin-bottom:4px;">Ramalan Pingat</div>
+            <span class="medal-badge medal-none" id="pred-medal">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Markah Audit Dalaman -->
+      <div class="card">
+        <h2>🔍 Markah Audit Dalaman</h2>
+        <div class="hint">Rekod markah yang diperoleh semasa audit dalaman bagi setiap kriteria.</div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead>
+            <tr style="background:#f5f7fa;">
+              <th style="padding:10px 12px;text-align:left;">Kriteria</th>
+              <th style="padding:10px 12px;text-align:center;width:80px;">Maks</th>
+              <th style="padding:10px 12px;text-align:center;width:110px;">Markah Audit</th>
+              <th style="padding:10px 12px;text-align:center;width:80px;">%</th>
+              <th style="padding:10px 12px;text-align:left;">Nota Audit</th>
+              <th style="padding:10px 12px;text-align:center;width:80px;">Tindakan</th>
+            </tr>
+          </thead>
+          <tbody id="audit-table-body"></tbody>
+          <tfoot>
+            <tr style="background:#1b4f72;color:white;font-weight:700;">
+              <td style="padding:10px 12px;">JUMLAH</td>
+              <td style="padding:10px 12px;text-align:center;">1009</td>
+              <td style="padding:10px 12px;text-align:center;" id="audit-jumlah-markah">—</td>
+              <td style="padding:10px 12px;text-align:center;" id="audit-jumlah-pct">—%</td>
+              <td colspan="2"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- 7 Kriteria Overview -->
+      <div class="card">
+        <h2>📋 Semua Kriteria — Gambaran Keseluruhan</h2>
+        <div class="hint">Klik pada setiap kriteria untuk lihat butiran indikator.</div>
+        <div id="kriteria-overview"></div>
+      </div>
+
+    </div><!-- end dashboard -->
+
+    <!-- ══════════════════════════════
+         PAGE: EVIDENCE CHECKER
+    ══════════════════════════════ -->
+    <div id="pg-checker" class="page" style="display:none;">
+
+      <div class="card">
+        <h2>✅ Evidence Checker — Semua Kriteria</h2>
+        <div class="hint">Kemas kini status bukti, markah dicadangkan dan nota bagi setiap indikator.</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+          <select id="filter-kriteria" onchange="renderChecker()" style="padding:8px 12px; border:1.5px solid #ddd; border-radius:8px; font-size:13px;">
+            <option value="">🔍 Semua Kriteria</option>
+            <option value="1">Kriteria 1 — Governance</option>
+            <option value="2">Kriteria 2 — Teaching & Learning</option>
+            <option value="3">Kriteria 3 — Technopreneurship & Research</option>
+            <option value="4">Kriteria 4 — Human Resource</option>
+            <option value="5">Kriteria 5 — Budgetary Allocation</option>
+            <option value="6">Kriteria 6 — Student Support</option>
+            <option value="7">Kriteria 7 — Industry-Academia-Community</option>
+          </select>
+          <select id="filter-status" onchange="renderChecker()" style="padding:8px 12px; border:1.5px solid #ddd; border-radius:8px; font-size:13px;">
+            <option value="">📂 Semua Status</option>
+            <option value="Lengkap">✅ Lengkap</option>
+            <option value="Separa">⚠️ Separa</option>
+            <option value="Tiada">❌ Tiada Bukti</option>
+          </select>
+          <button class="btn btn-blue" onclick="simpanSemua()">💾 Simpan Semua</button>
+        </div>
+        <div id="checker-container"></div>
+      </div>
+
+    </div><!-- end checker -->
+
+    <!-- ══════════════════════════════
+         PAGE: PREDICTION
+    ══════════════════════════════ -->
+    <div id="pg-prediction" class="page" style="display:none;">
+
+      <div class="card">
+        <h2>🔮 Prediction & Analisis Pencapaian</h2>
+        <div class="hint">Ramalan berdasarkan markah semasa vs markah maksimum APACC 2027.</div>
+
+        <div class="pred-grid">
+          <div class="pred-card current">
+            <div class="pred-title">📍 Skor Semasa (Terkumpul)</div>
+            <div class="pred-score" id="p-skor-kini" style="color:#1b4f72;">—</div>
+            <div class="pred-out" id="p-skor-maks-full">/ — markah</div>
+            <div class="pred-pct" id="p-pct-kini">— %</div>
+          </div>
+          <div class="pred-card target">
+            <div class="pred-title">🎯 Sasaran Platinum</div>
+            <div class="pred-score" style="color:#d4ac0d;" id="p-diamond-min">—</div>
+            <div class="pred-out">markah minimum Platinum</div>
+            <div class="pred-pct" id="p-pct-diamond">— %</div>
+          </div>
+        </div>
+
+        <div class="gap-meter" style="margin-top:24px;">
+          <div class="gap-label">📊 Kemajuan ke Arah Diamond 💎</div>
+          <div class="prog-track" style="height:22px;">
+            <div class="prog-fill prog-diamond" id="gap-bar" style="width:0%;"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:11px; color:#aaa; margin-top:4px;">
+            <span>0%</span>
+            <span id="gap-bar-pct">—</span>
+            <span>Platinum (100%)</span>
+          </div>
+        </div>
+
+        <div style="margin-top:24px;">
+          <div class="gap-label">🏅 Ramalan Pingat Semasa</div>
+          <span class="medal-badge medal-none" id="p-medal" style="font-size:16px; padding:6px 22px;">—</span>
+          <div style="margin-top:10px; font-size:13px; color:#555;" id="p-mesej">—</div>
+        </div>
+
+        <!-- Per-kriteria breakdown -->
+        <div style="margin-top:28px;">
+          <div class="gap-label">📋 Analisis Per Kriteria</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Kriteria</th>
+                <th>Skor Semasa</th>
+                <th>Maks</th>
+                <th>%</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="pred-table-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Simulasi -->
+        <div style="margin-top:28px; background:#f8faff; border-radius:10px; padding:18px;">
+          <div class="gap-label">🧪 Simulasi — Jika semua indikator lengkap</div>
+          <div style="font-size:13px; color:#555; margin-bottom:10px;">Jika anda melengkapkan bukti untuk semua indikator yang masih tiada/separa, skor dijangka:</div>
+          <div style="display:flex; gap:24px; flex-wrap:wrap; align-items:center;">
+            <div>
+              <div style="font-size:11px; color:#888;">Skor Dijangka (Max)</div>
+              <div style="font-size:28px; font-weight:800; color:#27ae60;" id="sim-skor">—</div>
+            </div>
+            <div>
+              <div style="font-size:11px; color:#888;">Pingat Dijangka</div>
+              <span class="medal-badge" id="sim-medal" style="font-size:14px;">—</span>
+            </div>
+            <div style="font-size:13px; color:#888;" id="sim-msg">—</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div><!-- end prediction -->
+
+    <!-- ══════════════════════════════
+         PAGE: PENGGUNA (Admin)
+    ══════════════════════════════ -->
+    <!-- ══ AUDITOR — BORANG AUDIT ══ -->
+    <div id="pg-audit" class="page" style="display:none;">
+      <div class="card">
+        <h2>📝 Borang Dapatan Audit</h2>
+        <div class="hint">Isi dapatan audit bagi setiap indikator dalam kriteria yang dipertanggungjawabkan.</div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
+          <select id="audit-filter-kriteria" onchange="renderBorangAudit()" style="padding:8px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;">
+            <option value="">🔍 Semua Kriteria</option>
+            <option value="1">Kriteria 1 — Governance</option>
+            <option value="2">Kriteria 2 — Teaching & Learning</option>
+            <option value="3">Kriteria 3 — Technopreneurship</option>
+            <option value="4">Kriteria 4 — Human Resource</option>
+            <option value="5">Kriteria 5 — Budgetary Allocation</option>
+            <option value="6">Kriteria 6 — Student Support</option>
+            <option value="7">Kriteria 7 — Industry-Academia</option>
+          </select>
+          <button class="btn btn-blue" onclick="simpanSemuaDapatan()">💾 Simpan Semua Dapatan</button>
+          <span id="audit-save-msg" style="font-size:13px;color:#27ae60;display:none;">✅ Tersimpan!</span>
+        </div>
+
+        <div id="audit-borang-container"></div>
+      </div>
+
+      <!-- Rumusan Audit -->
+      <div class="card">
+        <h2>📋 Rumusan Laporan Audit</h2>
+        <div class="hint">Ringkasan keseluruhan dapatan audit — diisi oleh auditor selepas semua kriteria dinilai.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div>
+            <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:5px;">Nama Auditor</label>
+            <input type="text" id="rumusan-auditor" placeholder="Nama penuh auditor"
+              style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:5px;">Tarikh Audit</label>
+            <input type="date" id="rumusan-tarikh"
+              style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:5px;">Kriteria Diaudit</label>
+            <input type="text" id="rumusan-kriteria" placeholder="Cth: Kriteria 1, 2, 3"
+              style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;" readonly>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:5px;">Keputusan Audit</label>
+            <select id="rumusan-keputusan" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;">
+              <option value="">-- Pilih --</option>
+              <option value="Conformance">✅ Conformance</option>
+              <option value="Minor Non-Conformance">⚠️ Minor Non-Conformance</option>
+              <option value="Major Non-Conformance">❌ Major Non-Conformance</option>
+              <option value="Observation">🔍 Observation</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:5px;">Penemuan / Finding Utama</label>
+          <textarea id="rumusan-finding" rows="3" placeholder="Nyatakan penemuan utama semasa audit..."
+            style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;resize:vertical;"></textarea>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:5px;">Kelemahan / Weakness</label>
+          <textarea id="rumusan-kelemahan" rows="3" placeholder="Senaraikan kelemahan yang dikenal pasti..."
+            style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;resize:vertical;"></textarea>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:5px;">Syor Penambahbaikan / Recommendation</label>
+          <textarea id="rumusan-syor" rows="3" placeholder="Cadangan penambahbaikan untuk tindakan susulan..."
+            style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;resize:vertical;"></textarea>
+        </div>
+        <div id="rumusan-save-msg" style="display:none;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:10px;background:#d1fae5;color:#065f46;border-left:4px solid #10b981;"></div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-blue" onclick="simpanRumusan()">💾 Simpan Rumusan</button>
+          <button class="btn btn-outline" onclick="window.print()">🖨️ Cetak Laporan</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="pg-pengguna" class="page" style="display:none;">
+      <div class="card">
+        <h2>👥 Urus Pengguna</h2>
+        <div class="hint">Tambah dan urus akaun Ketua Kriteria dan Ahli Team.</div>
+        <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+          <button class="btn btn-blue" onclick="openModalTambahPengguna()">➕ Tambah Pengguna</button>
+        </div>
+        <table>
+          <thead><tr><th>Nama</th><th>ID</th><th>Peranan</th><th>Kriteria</th><th>Tindakan</th></tr></thead>
+          <tbody id="tb-pengguna"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════
+         PAGE: LAPORAN (Admin)
+    ══════════════════════════════ -->
+    <div id="pg-laporan" class="page" style="display:none;">
+      <div class="card">
+        <h2>📄 Laporan Kemajuan APACC</h2>
+        <div class="hint">Jana laporan kemajuan keseluruhan atau per kriteria.</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn btn-blue" onclick="cetakLaporan()">🖨️ Cetak / PDF</button>
+          <button class="btn btn-outline" onclick="exportExcel()">📥 Export Excel</button>
+        </div>
+        <div id="laporan-content" style="margin-top:20px;"></div>
+      </div>
+    </div>
+
+  </div><!-- end content -->
+</div><!-- end app-screen -->
+
+<!-- ════════════════════════════════
+     MODAL TAMBAH PENGGUNA
+════════════════════════════════ -->
+<div class="modal-overlay" id="modal-pengguna">
+  <div class="modal-box">
+    <span class="modal-close" onclick="closeModal('modal-pengguna')">✕</span>
+    <div class="modal-title">➕ Tambah Pengguna Baharu</div>
+    <div class="form-field"><label>Nama Penuh</label><input type="text" id="p-nama" placeholder="Cth: Ahmad bin Ali"></div>
+    <div class="form-field"><label>ID Pengguna</label><input type="text" id="p-id" placeholder="Cth: ketua_k1"></div>
+    <div class="form-field"><label>Kata Laluan</label><input type="password" id="p-pass" placeholder="Kata laluan"></div>
+    <div class="form-field">
+      <label>Peranan</label>
+      <select id="p-role">
+        <option value="ketua">Ketua Kriteria</option>
+        <option value="ahli">Ahli Team</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label>Kriteria Dipertanggungjawabkan</label>
+      <select id="p-kriteria">
+        <option value="0">Semua Kriteria (Admin)</option>
+        <option value="1">Kriteria 1 — Governance</option>
+        <option value="2">Kriteria 2 — Teaching & Learning</option>
+        <option value="3">Kriteria 3 — Technopreneurship</option>
+        <option value="4">Kriteria 4 — Human Resource</option>
+        <option value="5">Kriteria 5 — Budgetary Allocation</option>
+        <option value="6">Kriteria 6 — Student Support</option>
+        <option value="7">Kriteria 7 — Industry-Academia</option>
+      </select>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:8px;">
+      <button class="btn btn-blue" style="flex:1;" onclick="simpanPengguna()">Simpan</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-pengguna')">Batal</button>
+    </div>
+    <div class="login-msg err" id="modal-err" style="display:none; margin-top:8px;"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     MODAL UPLOAD BUKTI
+════════════════════════════════ -->
+<div class="modal-overlay" id="modal-bukti">
+  <div class="modal-box">
+    <span class="modal-close" onclick="closeModal('modal-bukti')">✕</span>
+    <div class="modal-title" id="modal-bukti-title">📎 Kemaskini Bukti</div>
+    <input type="hidden" id="bukti-ind-id">
+    <div class="form-field"><label>Nama / Pautan Dokumen</label><input type="text" id="bukti-nama" placeholder="Cth: Pelan Strategik 2023-2027.pdf atau https://drive.google.com/..."></div>
+    <div class="form-field">
+      <label>Status Bukti</label>
+      <select id="bukti-status">
+        <option value="Lengkap">✅ Lengkap</option>
+        <option value="Separa">⚠️ Separa Lengkap</option>
+        <option value="Tiada">❌ Tiada Bukti</option>
+        <option value="Semak">🔍 Perlu Disemak</option>
+      </select>
+    </div>
+    <div class="form-field"><label>Markah Dicadangkan</label><input type="number" id="bukti-markah" min="0" placeholder="0"></div>
+    <div class="form-field"><label>Nota / Justifikasi</label><textarea id="bukti-nota" rows="3" style="width:100%; padding:10px; border:1.5px solid #ddd; border-radius:8px; font-size:13px; resize:vertical;" placeholder="Nyatakan justifikasi markah atau isu yang perlu dibincangkan..."></textarea></div>
+    <div style="display:flex; gap:10px; margin-top:8px;">
+      <button class="btn btn-blue" style="flex:1;" onclick="simpanBukti()">💾 Simpan</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-bukti')">Batal</button>
+    </div>
+    <div class="login-msg err" id="bukti-err" style="display:none;"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// TETAPAN API
+// ═══════════════════════════════════════════════════════
+const API_URL = 'https://script.google.com/macros/s/AKfycbyC32q0ZeudUxRBtja9fm-F_yBJKK81xepgZIZB2NmLz6SGx5HbarKV_8tmDj7T4SL8/exec';
+
+// ═══════════════════════════════════════════════════════
+// DATA INDIKATOR APACC 7 KRITERIA
+// Jumlah keseluruhan = 1000 markah (APACC Manual 2025)
+// Agihan per kriteria berkadar dengan bilangan indikator
+// ═══════════════════════════════════════════════════════
+const ONEDRIVE_LINKS = {
+  main:        'https://pkbedumy-my.sharepoint.com/:f:/r/personal/s_apacc_pkb_edu_my/Documents/APACC%20PKB%202026?d=w89748eb781e9433dbee3b7a8efb11d1c&csf=1&web=1&e=caUZce',
+  secretariat: 'https://pkbedumy-my.sharepoint.com/:f:/r/personal/s_apacc_pkb_edu_my/Documents/APACC%20PKB%202026/SECRETARIAT?d=w04320d122b2d4caaa611730c1b7dafa1&csf=1&web=1&e=mBgjK0',
+  auditors:    'https://pkbedumy-my.sharepoint.com/:f:/r/personal/s_apacc_pkb_edu_my/Documents/APACC%20PKB%202026/AUDITORS?d=w7a6a51d2209f4e29bd92980fa31747bd&csf=1&web=1&e=tAw21L',
+  1: 'https://pkbedumy-my.sharepoint.com/:f:/r/personal/s_apacc_pkb_edu_my/Documents/APACC%20PKB%202026/CRITERION%201?d=wd7f810651bb74559b83e89f86287f3b2&csf=1&web=1&e=R5j5lZ',
+  2: 'https://pkbedumy-my.sharepoint.com/:f:/r/personal/s_apacc_pkb_edu_my/Documents/APACC%20PKB%202026/CRITERION%202?d=w068fafd0d23748e0892de0ec7754abce&csf=1&web=1&e=hzpMy5',
+  3: 'https://pkbedumy-my.sharepoint.com/:f:/r/personal/s_apacc_pkb_edu_my/Documents/APACC%20PKB%202026/CRITERION%203?d=w48ee9f81a004495f87b06f6a15d7014f&csf=1&web=1&e=0v3VM8',
+  4: 'https://pkbedumy-my.sharepoint.com/:f:/r/personal/s_apacc_pkb_edu_my/Documents/APACC%20PKB%202026/CRITERION%204?d=w02cd5343c0824315b68f0cb4849b440b&csf=1&web=1&e=LSQC61',
+  5: 'https://pkbedumy-my.sharepoint.com/:f:/r/personal/s_apacc_pkb_edu_my/Documents/APACC%20PKB%202026/CRITERION%205?d=web90b3622926424b84a70e445f1ab289&csf=1&web=1&e=ubTwuu',
+  6: 'https://pkbedumy-my.sharepoint.com/:f:/r/personal/s_apacc_pkb_edu_my/Documents/APACC%20PKB%202026/CRITERION%206?d=w536c0ed9cbec49d692bf8bc2bd294a4d&csf=1&web=1&e=TBiCK7',
+  7: 'https://pkbedumy-my.sharepoint.com/:f:/r/personal/s_apacc_pkb_edu_my/Documents/APACC%20PKB%202026/CRITERION%207?d=w0aec1ba8bc8e4179806b33daa6b93f31&csf=1&web=1&e=wNri4msy',
+};
+
+const KRITERIA_DATA = [
+  {
+    id: 1, nama: 'Governance and Strategic Framework',
+    malay: 'Tadbir Urus & Rangka Strategik',
+    maxTotal: 104,
+    indikator: [
+      { id:'1.1.1',  nama:'Strategic Plan and Yearly Plan of Operation',                              max:5,  annex:'Annex 1 — Strategic Management' },
+      { id:'1.1.2',  nama:'Compliance of Strategic and Annual Plan',                                  max:5,  annex:'Annex 2 — Annual Training Plan' },
+      { id:'1.1.3',  nama:'Administrative and Organizational Structure (Chain of Command)',           max:4,  annex:'Annex 3 — Org Structure' },
+      { id:'1.1.4',  nama:'Compliance of administrative/policy decisions (past 3 years)',             max:4,  annex:'Annex 3 — Org Structure' },
+      { id:'1.1.5',  nama:'Governing Board/Council with TOR (academia & industry)',                   max:4,  annex:'Annex 4 — Governing Committee' },
+      { id:'1.1.6',  nama:'Compliance of Governing Board decisions (past 3 years)',                   max:4,  annex:'Annex 4 — Governing Committee' },
+      { id:'1.1.7',  nama:'Quality Management System Manual',                                         max:4,  annex:null },
+      { id:'1.1.8',  nama:'Framework for M&E, Internal Audit, Capacity Building, LMS',               max:4,  annex:'Annex 5 — M&E Framework' },
+      { id:'1.1.9',  nama:'Internal Quality Audit System (Technical and Financial)',                  max:8,  annex:null },
+      { id:'1.1.10', nama:'Academic council/committee structure and TOR',                             max:4,  annex:null },
+      { id:'1.1.11', nama:'Focus areas: Academic Policy, Curricula, Student/Faculty Support, Ethics', max:4, annex:null },
+      { id:'1.2.1',  nama:'Diversification of Financial Resources (Govt, Industry, Donor, Consultancy)', max:20, annex:'Annex 6 — Financial Resources' },
+      { id:'1.2.2',  nama:'Fiscal Financial Planning and Budgeting',                                  max:5,  annex:'Annex 7 — Financial Plans' },
+      { id:'1.2.3',  nama:'Financial Management digital tools (ERP, SAP)',                            max:5,  annex:'Annex 8 — Financial Mgmt & Inventory' },
+      { id:'1.2.4',  nama:'Financial Allocation for Faculty, Student, Infrastructure, Curriculum',   max:20, annex:'Annex 9 — Financial Allocation' },
+    ]
+  },
+  {
+    id: 2, nama: 'Teaching and Learning Management System',
+    malay: 'Sistem Pengajaran & Pembelajaran',
+    maxTotal: 255,
+    indikator: [
+      { id:'2.1.1', nama:'Curricula alignment with National Qualification Framework',      max:10, annex:'Annex 10 — Teaching & Learning Pedagogy' },
+      { id:'2.1.2', nama:'Alignment with Industrial Requirements',                         max:10, annex:'Annex 11 — Industrial Requirements' },
+      { id:'2.1.3', nama:'Adoption of AI-powered tools (AR/VR)',                           max:10, annex:'Annex 12 — AI/AR/VR Tools' },
+      { id:'2.1.4', nama:'Adoption of Learning Management System (LMS)',                   max:10, annex:'Annex 13 — LMS/Class Mgmt System' },
+      { id:'2.1.5', nama:'TVET Entrepreneurship through Business Incubation (BIC)',        max:10, annex:'Annex 14 — TVET Entrepreneurship/BIC' },
+      { id:'2.1.6', nama:'Engagement of Industry Mentors & Startup Founders',             max:10, annex:'Annex 15 — Industry Mentors' },
+      { id:'2.1.7', nama:'Integration of Green Skills and SDG Alignment',                 max:10, annex:'Annex 16 — Green Skills & SDG' },
+      { id:'2.2.1', nama:'Formulation and Compliance of Lesson/Session Plans',            max:10, annex:null },
+      { id:'2.2.2', nama:'Periodic Review and Alignment with Industrial Job Requirements', max:10, annex:null },
+      { id:'2.2.3', nama:'Alignment of Occupational Skills Standard with Industry',       max:5,  annex:null },
+      { id:'2.2.4', nama:'Provision for OJT, Apprenticeship, Internship in Curricula',   max:5,  annex:null },
+      { id:'2.2.5', nama:'Provision for Engaging Industry in Assessment Process',         max:10, annex:null },
+      { id:'2.2.6', nama:'Inclusion of Emerging Technology (AI, Data Analytics, Blockchain)', max:5, annex:null },
+      { id:'2.2.7', nama:'Availability of Tutorials, TLM, Reference Notes',              max:10, annex:null },
+      { id:'2.3.1', nama:'Area and Accessibility of Institution',                         max:20, annex:null },
+      { id:'2.3.2', nama:'Classrooms',                                                    max:20, annex:null },
+      { id:'2.3.3', nama:'Furniture',                                                     max:20, annex:'Annex 17 — Furniture' },
+      { id:'2.3.4', nama:'Labs, Workshops and other facilities (maintenance)',            max:20, annex:'Annex 18-20 — Labs/Workshops/Hostels' },
+      { id:'2.4.1', nama:'Library Resources including Learning Resource Centers',         max:5,  annex:'Annex 21 — Library Collection' },
+      { id:'2.5.1', nama:'Tools, Equipment and Accessories (by program)',                 max:20, annex:'Annex 22 — Tools & Equipment' },
+      { id:'2.6.1', nama:'Computers and Required Software',                               max:5,  annex:'Annex 23 — Computing Facilities' },
+      { id:'2.6.2', nama:'Multimedia Center and other ICT Facilities',                   max:5,  annex:'Annex 24 — Multimedia & ICT' },
+      { id:'2.7.1', nama:'Maintenance of Workshops/Laboratories',                         max:5,  annex:null },
+      { id:'2.7.2', nama:'Safety Measures and Signage',                                   max:5,  annex:null },
+    ]
+  },
+  {
+    id: 3, nama: 'Technopreneurship, Research and TNA',
+    malay: 'Keusahawanan Teknologi & Penyelidikan',
+    maxTotal: 100,
+    indikator: [
+      { id:'3.1.1', nama:'Start-ups by student/alumni/faculty (past 3 years)',                      max:10, annex:null },
+      { id:'3.1.2', nama:'Entrepreneurship/Technopreneurship programs, workshops, seminars',        max:10, annex:null },
+      { id:'3.1.3', nama:'Integration of TVET curriculum — Case study & Experiential Learning',     max:10, annex:null },
+      { id:'3.2.1', nama:'Institutional research policy and R&D budget allocation',                 max:5,  annex:null },
+      { id:'3.2.2', nama:'Utilization of annual R&D budget',                                        max:5,  annex:null },
+      { id:'3.2.3', nama:'R&D infrastructure with equipped laboratories',                           max:5,  annex:'Annex 25 — R&D Equipment & Facilities' },
+      { id:'3.2.4', nama:'Research papers published (journals, Scopus, indexed)',                   max:10, annex:'Annex 26 — Publications List' },
+      { id:'3.2.5', nama:'Patents filed by faculty/staff/student (past 3 years)',                   max:5,  annex:null },
+      { id:'3.2.6', nama:'Academia-Industry collaboration R&D partnerships',                        max:5,  annex:'Annex 27 — MOUs/R&D Agreements' },
+      { id:'3.2.7', nama:'Post R&D prototypes/projects for community welfare',                      max:5,  annex:'Annex 28 — Community Welfare Projects' },
+      { id:'3.3.1', nama:'Labor market & industry trend analysis (min 2 in past 3 years)',          max:10, annex:null },
+      { id:'3.3.2', nama:'Revision and alignment of TVET curricula based on TNA findings',          max:10, annex:null },
+      { id:'3.3.3', nama:'Training of Trainers (ToT) for CPD on emerging training needs',           max:10, annex:'Annex 28 — Session Portfolio (ToT)' },
+    ]
+  },
+  {
+    id: 4, nama: 'Human Resource Management',
+    malay: 'Pengurusan Sumber Manusia',
+    maxTotal: 150,
+    indikator: [
+      { id:'4.1.1', nama:'Instructional Staff — minimum academic + TVET qualification',           max:30, annex:null },
+      { id:'4.1.2', nama:'Professional Certification (NVQF, CBT&E, CPSC, APACC)',                max:10, annex:null },
+      { id:'4.1.3', nama:'Emerging Industrial Technology Certification (AI, Cyber, Big Data)',    max:10, annex:null },
+      { id:'4.1.4', nama:'Industrial Immersion Programs (internship, consultancy, attachment)',   max:10, annex:null },
+      { id:'4.1.5', nama:'CPD Training organized/attended by faculty (TVET Pedagogy/Digital)',   max:10, annex:null },
+      { id:'4.2.1', nama:'Non-Instructional Staff — minimum academic + TVET qualification',      max:30, annex:null },
+      { id:'4.2.2', nama:'Professional Certification for Non-Instructional Staff',               max:10, annex:null },
+      { id:'4.2.3', nama:'Emerging Technology Certification for Non-Instructional Staff',        max:10, annex:null },
+      { id:'4.2.4', nama:'CPD Training for non-faculty (Digital Skills, Advanced Technology)',   max:10, annex:null },
+      { id:'4.3.1', nama:'Recruitment, Promotion, Gender Inclusivity & Onboarding Policy',      max:5,  annex:null },
+      { id:'4.3.2', nama:'Performance Evaluation and Recognition Framework',                     max:5,  annex:null },
+      { id:'4.3.3', nama:'Staff Well-Being and Work-Life Balance Policy',                        max:5,  annex:null },
+      { id:'4.3.4', nama:'Ethical and Professional Code of Conduct (Faculty & Non-Faculty)',     max:5,  annex:null },
+    ]
+  },
+  {
+    id: 5, nama: 'Budgetary Allocation',
+    malay: 'Peruntukan Belanjawan',
+    maxTotal: 200,
+    indikator: [
+      { id:'5.1.1', nama:'Infrastructure Development (new buildings, classrooms, workshops)',              max:20, annex:null },
+      { id:'5.1.2', nama:'Equipment and Machinery Procurement',                                           max:20, annex:null },
+      { id:'5.1.3', nama:'Workshop and Laboratory Establishment/Upgradation',                             max:20, annex:null },
+      { id:'5.1.4', nama:'Emerging Technologies, ICT, Digital Learning Investments',                      max:15, annex:null },
+      { id:'5.2.1', nama:'Salaries for trainers, faculty, admin + allowances (OPEX)',                     max:20, annex:null },
+      { id:'5.2.2', nama:'Utilities & Overheads (electricity, water, internet, security)',                max:10, annex:null },
+      { id:'5.2.3', nama:'Maintenance and Repairs of infrastructure/equipment',                           max:10, annex:null },
+      { id:'5.2.4', nama:'Training Consumables and raw materials for practical training',                  max:15, annex:null },
+      { id:'5.2.5', nama:'TVET Research and Development (OPEX allocation)',                               max:10, annex:null },
+      { id:'5.2.6', nama:'Staff Development budget allocation',                                           max:10, annex:null },
+      { id:'5.2.7', nama:'Student Scholarships (OPEX allocation)',                                        max:10, annex:null },
+      { id:'5.3.1', nama:'Income Generating Fund (Govt, Fee, Projects, Industry, Commercialization)',     max:20, annex:null },
+      { id:'5.4.1', nama:'Financial Budget Preparation and Planning (fiscal/quarterly/monthly)',           max:10, annex:null },
+      { id:'5.4.2', nama:'Financial SOP, Accounting Procedures, Procurement Committee, Tender',           max:10, annex:null },
+    ]
+  },
+  {
+    id: 6, nama: 'Student Support System and Digital Health',
+    malay: 'Sokongan Pelajar & Kesihatan Digital',
+    maxTotal: 100,
+    indikator: [
+      { id:'6.1.1',  nama:'Career Guidance and Counseling Support Services',                          max:10, annex:null },
+      { id:'6.1.2',  nama:'AI Skills-Job Matching and National/International Job Portal',             max:5,  annex:null },
+      { id:'6.1.3',  nama:'Seminars/Conferences on Emerging Trends, Job Alerts, Mental Health',      max:10, annex:null },
+      { id:'6.1.4',  nama:'Medical Healthcare Facility (Physical and Mental)',                        max:10, annex:null },
+      { id:'6.1.5',  nama:'Digital Career Platforms (LinkedIn, Coursera — skill endorsement)',       max:5,  annex:null },
+      { id:'6.1.6',  nama:'Scholarships and Financial Aid (earn-while-you-learn programs)',           max:10, annex:null },
+      { id:'6.1.7',  nama:'Gender Responsive and Inclusivity Policy (STEM/STEAM, Disability)',       max:5,  annex:null },
+      { id:'6.1.8',  nama:'Green TVET and Sustainability Initiatives (Eco-friendly campus)',          max:5,  annex:null },
+      { id:'6.1.9',  nama:'Student Satisfaction and Feedback Mechanism',                              max:10, annex:null },
+      { id:'6.1.10', nama:'Student Council Engagement for TVET Delivery',                             max:5,  annex:null },
+      { id:'6.1.11', nama:'Alumni Mapping and Engagement Framework',                                  max:10, annex:null },
+      { id:'6.1.12', nama:'Industrial Attachment and Apprenticeship (OJT/Internship)',                max:10, annex:null },
+      { id:'6.1.13', nama:'Hackathons and Webinars on IR4.0/IR5.0 Technologies',                     max:5,  annex:null },
+    ]
+  },
+  {
+    id: 7, nama: 'Industry-Academia-Community Linkages',
+    malay: 'Jaringan Industri, Akademia & Komuniti',
+    maxTotal: 100,
+    indikator: [
+      { id:'7.1.1', nama:'Formal industry-academia linkages (MOUs, partnerships)',                   max:10, annex:null },
+      { id:'7.1.2', nama:'Industry participation in curriculum, skills standards, training',         max:10, annex:null },
+      { id:'7.1.3', nama:'Industry-Institute training support (scholarships, equipment, grants)',    max:10, annex:null },
+      { id:'7.1.4', nama:'R&D collaborations with industry and academia',                            max:10, annex:null },
+      { id:'7.1.5', nama:'Community service and CSR projects',                                       max:10, annex:null },
+      { id:'7.2.1', nama:'Industry/community stakeholders in governance and policy-making',         max:5,  annex:null },
+      { id:'7.2.2', nama:'Industry support: funding, sponsorships, resource-sharing',               max:5,  annex:null },
+      { id:'7.2.3', nama:'Advisory board with industry, academia, community representatives',       max:5,  annex:null },
+      { id:'7.3.1', nama:'Technology transfer and community development initiatives',               max:5,  annex:'Annex 29 — Community Training Programs' },
+      { id:'7.3.2', nama:'Skills training and lifelong learning for marginalized sectors',          max:5,  annex:'Annex 30 — Skills Training Programs' },
+      { id:'7.3.3', nama:'Knowledge-sharing platforms and technical assistance to industries',      max:5,  annex:null },
+      { id:'7.4.1', nama:'Recognition and awards for industry/community linkages',                  max:10, annex:null },
+      { id:'7.4.2', nama:'Benchmarking with international institutions for knowledge exchange',     max:10, annex:null },
+    ]
+  }
+];
+// Jumlah: 104+255+100+150+200+100+100 = 1009
+// (9 markah lebih — boleh adjust atau gunakan JUMLAH_MAX=1009 untuk tepat dengan Manual)
+
+// ── Markah ambang pingat APACC sebenar (markah mutlak dari 1000) ──
+// 💎 Diamond  : 950–1000
+// 🏆 Platinum : 850–949
+// 🥇 Gold     : 750–849
+// 🥈 Silver   : 650–749
+// 🥉 Bronze   : 550–649
+const MEDAL_THRESHOLD = {
+  diamond:  950,
+  platinum: 850,
+  gold:     750,
+  silver:   650,
+  bronze:   550,
+};
+
+const JUMLAH_MAX = 1009; // Markah maksimum APACC (Manual 2025) — 104+255+100+150+200+100+100
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let currentRole = 'admin';
+let currentUser = '';
+let currentNama = '';
+let currentKriteria = 0; // 0 = semua
+let evidenceData = {}; // { indId: { status, markah, nota, dokumen } }
+let auditData = {};    // { kriteria_id: { markah, nota } }
+
+// ═══════════════════════════════════════════════════════
+// LOGIN
+// ═══════════════════════════════════════════════════════
+function switchRole(role) {
+  currentRole = role;
+  ['admin','ketua','ahli'].forEach(r => {
+    document.getElementById('tab-' + r).classList.toggle('active', r === role);
+  });
+  document.getElementById('login-err').style.display = 'none';
+}
+
+async function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const err  = document.getElementById('login-err');
+  const btn  = document.getElementById('btn-login-masuk');
+
+  if (!user || !pass) { showErr(err, 'Sila masukkan ID dan kata laluan.'); return; }
+
+  btn.textContent = 'Sedang log masuk...'; btn.disabled = true;
+
+  try {
+    const res = await apiCall({ action: 'login', userId: user, password: pass, peranan: currentRole });
+    if (res.status === 'ok') {
+      currentUser     = user;
+      currentNama     = res.nama || user;
+      currentRole     = res.role || res.peranan || currentRole;
+      currentKriteria = parseInt(res.kriteria) || 0;
+      err.style.display = 'none';
+      startApp();
+    } else {
+      showErr(err, res.mesej || 'ID atau kata laluan tidak sah.');
+    }
+  } catch(e) {
+    showErr(err, 'Gagal sambung ke pelayan. Semak URL API.');
+  }
+  btn.textContent = 'Log Masuk'; btn.disabled = false;
+}
+
+function startApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display   = 'block';
+  document.getElementById('user-chip').textContent = currentNama;
+  document.getElementById('topbar-sub').textContent =
+    currentRole === 'admin'   ? 'Panel Admin — Semua Kriteria' :
+    currentRole === 'ketua'   ? `Ketua Kriteria ${currentKriteria} — ${currentNama}` :
+    currentRole === 'auditor' ? `Auditor — Kriteria ${currentKriteria} — ${currentNama}` :
+    `Ahli Team — Kriteria ${currentKriteria}`;
+
+  // Tunjuk/sembunyi tab ikut peranan
+  document.querySelectorAll('.admin-only').forEach(el => {
+    el.style.display = currentRole === 'admin' ? '' : 'none';
+  });
+  document.querySelectorAll('.auditor-only').forEach(el => {
+    el.style.display = currentRole === 'auditor' ? '' : 'none';
+  });
+
+  // Auditor: preset filter kriteria
+  if (currentRole === 'auditor' && currentKriteria > 0) {
+    const sel = document.getElementById('audit-filter-kriteria');
+    if (sel) sel.value = String(currentKriteria);
+    const kObj = KRITERIA_DATA.find(k => k.id === currentKriteria);
+    const rk = document.getElementById('rumusan-kriteria');
+    if (rk && kObj) rk.value = `Kriteria ${kObj.id} — ${kObj.nama}`;
+  }
+
+  loadEvidenceData();
+}
+
+function doLogout() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display   = 'none';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  evidenceData = {};
+}
+
+// ═══════════════════════════════════════════════════════
+// API
+// ═══════════════════════════════════════════════════════
+async function apiCall(payload) {
+  const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+  return await res.json();
+}
+
+// ═══════════════════════════════════════════════════════
+// LOAD DATA
+// ═══════════════════════════════════════════════════════
+async function loadEvidenceData() {
+  try {
+    const res = await apiCall({ action: 'getEvidence' });
+    if (res.status === 'ok') {
+      evidenceData = res.data || {};
+    }
+  } catch(e) {
+    // Gunakan data tempatan jika API gagal
+    evidenceData = {};
+  }
+  await loadAuditData();
+  if (currentRole === 'auditor') {
+    await loadDapatanAudit();
+    renderBorangAudit();
+  }
+  renderDashboard();
+  renderChecker();
+  renderPrediction();
+  if (currentRole === 'admin') { loadPengguna(); }
+}
+
+// ═══════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════
+function renderDashboard() {
+  let jumlah = 0, lengkap = 0, separa = 0, tiada = 0, skorKini = 0;
+
+  KRITERIA_DATA.forEach(k => {
+    k.indikator.forEach(ind => {
+      jumlah++;
+      const ev = evidenceData[ind.id] || {};
+      const st = ev.status || 'Tiada';
+      if (st === 'Lengkap') lengkap++;
+      else if (st === 'Separa') separa++;
+      else tiada++;
+      skorKini += parseFloat(ev.markah || 0);
+    });
+  });
+
+  const pct = jumlah > 0 ? Math.round((lengkap / jumlah) * 100) : 0;
+
+  document.getElementById('st-jumlah').textContent  = jumlah;
+  document.getElementById('st-lengkap').textContent = lengkap;
+  document.getElementById('st-separa').textContent  = separa;
+  document.getElementById('st-tiada').textContent   = tiada;
+  document.getElementById('st-pct').textContent     = pct + '%';
+
+  // Progress Keseluruhan
+  const markahPct = JUMLAH_MAX > 0 ? (skorKini / JUMLAH_MAX) * 100 : 0;
+  document.getElementById('prog-pct-label').textContent  = pct + '%';
+  document.getElementById('prog-pct-bar').style.width    = pct + '%';
+  document.getElementById('prog-pct-bar').className      = `prog-fill ${pct >= 90 ? 'prog-green' : pct >= 70 ? 'prog-yellow' : pct >= 50 ? 'prog-orange' : 'prog-red'}`;
+  document.getElementById('prog-pct-sub').textContent    = `${lengkap} daripada ${jumlah} indikator lengkap`;
+  document.getElementById('prog-markah-label').textContent = `${skorKini.toFixed(0)} / ${JUMLAH_MAX}`;
+  document.getElementById('prog-markah-bar').style.width   = Math.min(markahPct, 100).toFixed(1) + '%';
+  document.getElementById('prog-markah-sub').textContent   = `${markahPct.toFixed(1)}% daripada markah maksimum`;
+
+  // Progress per kriteria
+  let progHtml = '';
+  KRITERIA_DATA.forEach(k => {
+    let kSkor = 0, kLengkap = 0;
+    k.indikator.forEach(ind => {
+      const ev = evidenceData[ind.id] || {};
+      kSkor += parseFloat(ev.markah || 0);
+      if ((ev.status || 'Tiada') === 'Lengkap') kLengkap++;
+    });
+    const kPct = k.maxTotal > 0 ? (kSkor / k.maxTotal) * 100 : 0;
+    const kPctBukti = k.indikator.length > 0 ? Math.round((kLengkap / k.indikator.length) * 100) : 0;
+    const progCls = kPct >= 98 ? 'prog-diamond' : kPct >= 90 ? 'prog-green' : kPct >= 70 ? 'prog-yellow' : kPct >= 50 ? 'prog-orange' : 'prog-red';
+    progHtml += `
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+          <span style="font-weight:600;color:#0d1b2a;">K${k.id}: ${k.nama}</span>
+          <span style="color:#1b4f72;font-weight:700;">${kSkor.toFixed(0)}/${k.maxTotal} &nbsp;|&nbsp; ${kPct.toFixed(1)}% &nbsp;|&nbsp; Bukti: ${kPctBukti}%</span>
+        </div>
+        <div class="prog-track" style="height:10px;">
+          <div class="prog-fill ${progCls}" style="width:${Math.min(kPct,100).toFixed(1)}%;"></div>
+        </div>
+      </div>`;
+  });
+  document.getElementById('prog-per-kriteria').innerHTML = progHtml;
+
+  // Audit Dalaman table
+  let auditHtml = '';
+  let jumlahAudit = 0;
+  KRITERIA_DATA.forEach((k, i) => {
+    const ad = auditData[k.id] || {};
+    const aMarkah = ad.markah !== undefined ? ad.markah : '';
+    const aNota   = ad.nota || '';
+    const aPct    = aMarkah !== '' && k.maxTotal > 0 ? ((aMarkah / k.maxTotal) * 100).toFixed(1) : '—';
+    jumlahAudit  += parseFloat(aMarkah || 0);
+    const bg = i % 2 === 0 ? '' : 'background:#f8faff;';
+    auditHtml += `
+      <tr style="${bg}">
+        <td style="padding:9px 12px;"><strong>K${k.id}</strong> — ${k.nama}<br><span style="font-size:11px;color:#888;">${k.malay}</span></td>
+        <td style="padding:9px 12px;text-align:center;color:#888;">${k.maxTotal}</td>
+        <td style="padding:9px 12px;text-align:center;">
+          <input type="number" min="0" max="${k.maxTotal}" value="${aMarkah}"
+            style="width:70px;padding:4px 8px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;text-align:center;"
+            onchange="kemaskiniAudit(${k.id},'markah',this.value)">
+        </td>
+        <td style="padding:9px 12px;text-align:center;font-weight:700;color:${aPct !== '—' && parseFloat(aPct) >= 70 ? '#27ae60' : '#e74c3c'};">${aPct !== '—' ? aPct + '%' : '—'}</td>
+        <td style="padding:9px 12px;">
+          <input type="text" value="${aNota}" placeholder="Nota audit..."
+            style="width:100%;padding:4px 8px;border:1.5px solid #ddd;border-radius:6px;font-size:12px;"
+            onchange="kemaskiniAudit(${k.id},'nota',this.value)">
+        </td>
+        <td style="padding:9px 12px;text-align:center;">
+          <button class="btn btn-blue btn-sm" onclick="simpanAudit(${k.id})">💾</button>
+        </td>
+      </tr>`;
+  });
+  document.getElementById('audit-table-body').innerHTML = auditHtml;
+  const auditPct = JUMLAH_MAX > 0 ? ((jumlahAudit / JUMLAH_MAX) * 100).toFixed(1) : '—';
+  document.getElementById('audit-jumlah-markah').textContent = jumlahAudit.toFixed(0);
+  document.getElementById('audit-jumlah-pct').textContent    = auditPct + '%';
+
+  // Prediction summary
+  const platinumMin = MEDAL_THRESHOLD.platinum;
+  const platinumPct = Math.min((skorKini / platinumMin) * 100, 100);
+  document.getElementById('pred-skor-semasa').textContent = skorKini.toFixed(1);
+  document.getElementById('pred-skor-maks').textContent   = '/ ' + JUMLAH_MAX + ' markah';
+  document.getElementById('pred-bar').style.width         = platinumPct.toFixed(1) + '%';
+  document.getElementById('pred-bar-label').textContent   = skorKini.toFixed(0) + ' / ' + platinumMin + ' markah (Platinum)';
+  const medal = getMedal(skorKini);
+  const mEl = document.getElementById('pred-medal');
+  mEl.textContent = medal.label; mEl.className = 'medal-badge ' + medal.cls;
+
+  // Kriteria overview
+  let html = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+      <a href="${ONEDRIVE_LINKS.main}" target="_blank" class="btn btn-outline btn-sm">📁 Main Folder</a>
+      <a href="${ONEDRIVE_LINKS.secretariat}" target="_blank" class="btn btn-outline btn-sm">📂 Secretariat</a>
+      <a href="${ONEDRIVE_LINKS.auditors}" target="_blank" class="btn btn-outline btn-sm">📂 Auditors</a>
+    </div>`;
+  KRITERIA_DATA.forEach(k => {
+    let kSkor = 0;
+    k.indikator.forEach(ind => { kSkor += parseFloat((evidenceData[ind.id] || {}).markah || 0); });
+    const kPct = k.maxTotal > 0 ? (kSkor / k.maxTotal) * 100 : 0;
+    const progCls = kPct >= 98 ? 'prog-diamond' : kPct >= 90 ? 'prog-green' : kPct >= 70 ? 'prog-yellow' : kPct >= 50 ? 'prog-orange' : 'prog-red';
+    const medal = getMedalPct(kPct);
+    const odLink = ONEDRIVE_LINKS[k.id] ? `<a href="${ONEDRIVE_LINKS[k.id]}" target="_blank" style="font-size:11px;color:#2e86ab;margin-left:8px;text-decoration:none;">📁 OneDrive</a>` : '';
+    html += `
+      <div style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <div>
+            <span style="font-weight:700; font-size:13px; color:#0d1b2a;">Kriteria ${k.id}: ${k.nama}</span>
+            <span style="font-size:11px; color:#888; margin-left:8px;">${k.malay}</span>
+            ${odLink}
+          </div>
+          <div style="text-align:right;">
+            <span style="font-weight:800; color:#1b4f72;">${kSkor.toFixed(0)} / ${k.maxTotal}</span>
+            &nbsp;<span class="medal-badge ${medal.cls}">${medal.label}</span>
+          </div>
+        </div>
+        <div class="prog-track">
+          <div class="prog-fill ${progCls}" style="width:${Math.min(kPct,100).toFixed(1)}%"></div>
+        </div>
+        <div style="font-size:11px; color:#aaa; margin-top:2px;">${kPct.toFixed(1)}%</div>
+      </div>`;
+  });
+  document.getElementById('kriteria-overview').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════
+// EVIDENCE CHECKER
+// ═══════════════════════════════════════════════════════
+function renderChecker() {
+  const filterK = document.getElementById('filter-kriteria').value;
+  const filterS = document.getElementById('filter-status').value;
+  let html = '';
+
+  const kritToShow = filterK ? KRITERIA_DATA.filter(k => k.id == filterK) : KRITERIA_DATA;
+
+  kritToShow.forEach(k => {
+    let inds = k.indikator;
+    if (filterS) inds = inds.filter(ind => (evidenceData[ind.id]?.status || 'Tiada') === filterS);
+    if (inds.length === 0) return;
+
+    let kSkor = 0;
+    k.indikator.forEach(ind => { kSkor += parseFloat((evidenceData[ind.id] || {}).markah || 0); });
+
+    const odLinkChk = ONEDRIVE_LINKS[k.id] ? `<a href="${ONEDRIVE_LINKS[k.id]}" target="_blank" onclick="event.stopPropagation()" style="font-size:11px;color:#2e86ab;text-decoration:none;margin-left:6px;">📁 OneDrive</a>` : '';
+    html += `
+      <div class="kriteria-block">
+        <div class="kriteria-header" onclick="toggleKrit(this)">
+          <div>
+            <div class="krit-title">Kriteria ${k.id}: ${k.nama} ${odLinkChk}</div>
+            <div class="krit-sub">${k.malay} — ${k.indikator.length} indikator</div>
+          </div>
+          <div class="krit-right">
+            <div><div class="krit-skor">${kSkor.toFixed(0)}</div><div class="krit-max">/ ${k.maxTotal}</div></div>
+          </div>
+        </div>
+        <div class="kriteria-body">
+          <table>
+            <thead><tr><th style="width:80px;">Kod</th><th>Indikator</th><th style="width:100px;">Maks</th><th style="width:120px;">Status</th><th style="width:80px;">Markah</th><th style="width:80px;">Tindakan</th></tr></thead>
+            <tbody>`;
+
+    inds.forEach(ind => {
+      const ev = evidenceData[ind.id] || {};
+      const st = ev.status || 'Tiada';
+      const stCls = st === 'Lengkap' ? 'badge-lengkap' : st === 'Separa' ? 'badge-separa' : st === 'Semak' ? 'badge-semak' : 'badge-tiada';
+      const stLabel = st === 'Lengkap' ? '✅ Lengkap' : st === 'Separa' ? '⚠️ Separa' : st === 'Semak' ? '🔍 Semak' : '❌ Tiada';
+      const dokumen = ev.dokumen ? `<div style="font-size:11px; color:#2e86ab; margin-top:3px;">📎 ${ev.dokumen.substring(0,30)}${ev.dokumen.length>30?'...':''}</div>` : '';
+      const nota = ev.nota ? `<div style="font-size:11px; color:#888; margin-top:2px; font-style:italic;">${ev.nota.substring(0,40)}${ev.nota.length>40?'...':''}</div>` : '';
+      const annexLink = ind.annex && ONEDRIVE_LINKS[k.id]
+        ? `<a href="${ONEDRIVE_LINKS[k.id]}" target="_blank" onclick="event.stopPropagation()" style="display:inline-block;margin-top:4px;font-size:11px;color:#8e44ad;text-decoration:none;background:#f5eeff;border:1px solid #d4b8f0;border-radius:4px;padding:1px 7px;">📋 ${ind.annex}</a>`
+        : '';
+
+      html += `
+              <tr>
+                <td><strong>${ind.id}</strong></td>
+                <td>
+                  <div style="font-size:13px;">${ind.nama}</div>
+                  ${annexLink}${dokumen}${nota}
+                </td>
+                <td style="text-align:center; font-weight:700;">${ind.max}</td>
+                <td><span class="badge ${stCls}">${stLabel}</span></td>
+                <td style="text-align:center; font-weight:700; color:#1b4f72;">${ev.markah || 0}</td>
+                <td><button class="btn btn-outline btn-sm" onclick="openModalBukti('${ind.id}','${ind.nama.replace(/'/g,'')}',${ind.max})">✏️ Kemaskini</button></td>
+              </tr>`;
+    });
+
+    html += `</tbody></table></div></div>`;
+  });
+
+  document.getElementById('checker-container').innerHTML = html || '<div style="text-align:center;padding:30px;color:#888;">Tiada indikator dijumpai.</div>';
+}
+
+function toggleKrit(header) {
+  header.classList.toggle('open');
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+// ═══════════════════════════════════════════════════════
+// PREDICTION
+// ═══════════════════════════════════════════════════════
+function renderPrediction() {
+  let skorKini = 0;
+  const rows = KRITERIA_DATA.map(k => {
+    let kSkor = 0;
+    k.indikator.forEach(ind => { kSkor += parseFloat((evidenceData[ind.id] || {}).markah || 0); });
+    skorKini += kSkor;
+    const kPct = k.maxTotal > 0 ? (kSkor / k.maxTotal) * 100 : 0;
+    const m = getMedalPct(kPct);
+    return { k, kSkor, kPct, m };
+  });
+
+  const pctKini      = JUMLAH_MAX > 0 ? (skorKini / JUMLAH_MAX) * 100 : 0;
+  const platinumMin  = MEDAL_THRESHOLD.diamond;  // 950
+  const platinumPct  = Math.min((skorKini / platinumMin) * 100, 100);
+  const medal        = getMedal(skorKini);
+
+  document.getElementById('p-skor-kini').textContent      = skorKini.toFixed(1);
+  document.getElementById('p-skor-maks-full').textContent  = '/ ' + JUMLAH_MAX + ' markah';
+  document.getElementById('p-pct-kini').textContent        = pctKini.toFixed(1) + ' % dari markah maksimum';
+  document.getElementById('p-diamond-min').textContent     = platinumMin;
+  document.getElementById('p-pct-diamond').textContent     = '950 – 1000 markah (Diamond)';
+  document.getElementById('gap-bar').style.width           = platinumPct.toFixed(1) + '%';
+  document.getElementById('gap-bar-pct').textContent       = platinumPct.toFixed(1) + '%';
+
+  const mEl = document.getElementById('p-medal');
+  mEl.textContent = medal.label; mEl.className = 'medal-badge ' + medal.cls;
+
+  const gap = platinumMin - skorKini;
+  const mesej = gap <= 0
+    ? '🎉 Tahniah! Skor semasa anda sudah mencapai aras Diamond!'
+    : `⬆️ Anda memerlukan ${gap.toFixed(1)} markah lagi untuk mencapai Diamond. Fokus pada indikator yang masih tiada atau separa bukti.`;
+  document.getElementById('p-mesej').textContent = mesej;
+
+  // Table
+  let tbHtml = rows.map(r => `
+    <tr>
+      <td><strong>K${r.k.id}</strong>: ${r.k.nama}</td>
+      <td style="text-align:center; font-weight:700;">${r.kSkor.toFixed(1)}</td>
+      <td style="text-align:center;">${r.k.maxTotal}</td>
+      <td style="text-align:center;">${r.kPct.toFixed(1)}%</td>
+      <td><span class="medal-badge ${r.m.cls}">${r.m.label}</span></td>
+    </tr>`).join('');
+  document.getElementById('pred-table-body').innerHTML = tbHtml;
+
+  // Simulasi (jika semua markah penuh)
+  const simSkor = JUMLAH_MAX;
+  const simMed  = getMedal(simSkor);
+  document.getElementById('sim-skor').textContent = simSkor;
+  const simEl = document.getElementById('sim-medal');
+  simEl.textContent = simMed.label; simEl.className = 'medal-badge ' + simMed.cls;
+  document.getElementById('sim-msg').textContent =
+    `Jika semua ${getAllIndCount()} indikator mendapat markah penuh, skor = ${simSkor} — ${simPct}%`;
+}
+
+function getAllIndCount() {
+  return KRITERIA_DATA.reduce((s, k) => s + k.indikator.length, 0);
+}
+
+// ═══════════════════════════════════════════════════════
+// MEDAL HELPER
+// ═══════════════════════════════════════════════════════
+// getMedal kini terima markah SEBENAR (bukan %) — bandingkan dengan julat mutlak
+function getMedal(skor) {
+  if (skor >= MEDAL_THRESHOLD.diamond)  return { label: '💎 Diamond',  cls: 'medal-platinum'   };
+  if (skor >= MEDAL_THRESHOLD.platinum) return { label: '🏆 Platinum', cls: 'medal-gold'       };
+  if (skor >= MEDAL_THRESHOLD.gold)     return { label: '🥇 Gold',     cls: 'medal-gold'       };
+  if (skor >= MEDAL_THRESHOLD.silver)   return { label: '🥈 Silver',   cls: 'medal-silver'     };
+  if (skor >= MEDAL_THRESHOLD.bronze)   return { label: '🥉 Bronze',   cls: 'medal-bronze'     };
+  return { label: 'Belum Layak', cls: 'medal-none' };
+}
+
+// getMedalPct — untuk analisis per-kriteria (berdasarkan % skor kriteria itu sahaja)
+function getMedalPct(pct) {
+  if (pct >= 95.0) return { label: '💎 Diamond',  cls: 'medal-platinum'   }; // 950/1000
+  if (pct >= 85.0) return { label: '🏆 Platinum', cls: 'medal-gold'       }; // 850/1000
+  if (pct >= 75.0) return { label: '🥇 Gold',     cls: 'medal-gold'       }; // 750/1000
+  if (pct >= 65.0) return { label: '🥈 Silver',   cls: 'medal-silver'     }; // 650/1000
+  if (pct >= 55.0) return { label: '🥉 Bronze',   cls: 'medal-bronze'     }; // 550/1000
+  return { label: 'Belum Layak', cls: 'medal-none' };
+}
+
+// ═══════════════════════════════════════════════════════
+// MODAL BUKTI
+// ═══════════════════════════════════════════════════════
+function openModalBukti(indId, indNama, maxMarkah) {
+  const ev = evidenceData[indId] || {};
+  document.getElementById('modal-bukti-title').textContent = `✏️ ${indId} — ${indNama}`;
+  document.getElementById('bukti-ind-id').value   = indId;
+  document.getElementById('bukti-nama').value     = ev.dokumen || '';
+  document.getElementById('bukti-status').value   = ev.status  || 'Tiada';
+  document.getElementById('bukti-markah').max     = maxMarkah;
+  document.getElementById('bukti-markah').value   = ev.markah  || 0;
+  document.getElementById('bukti-nota').value     = ev.nota    || '';
+  document.getElementById('bukti-err').style.display = 'none';
+  document.getElementById('modal-bukti').classList.add('open');
+}
+
+async function simpanBukti() {
+  const indId   = document.getElementById('bukti-ind-id').value;
+  const dokumen = document.getElementById('bukti-nama').value.trim();
+  const status  = document.getElementById('bukti-status').value;
+  const markah  = parseFloat(document.getElementById('bukti-markah').value) || 0;
+  const nota    = document.getElementById('bukti-nota').value.trim();
+  const err     = document.getElementById('bukti-err');
+
+  // Simpan ke evidenceData tempatan
+  evidenceData[indId] = { dokumen, status, markah, nota };
+
+  // Cuba hantar ke API
+  try {
+    await apiCall({ action: 'simpanEvidence', indId, dokumen, status, markah, nota, oleh: currentUser });
+  } catch(e) {}
+
+  closeModal('modal-bukti');
+  renderDashboard();
+  renderChecker();
+  renderPrediction();
+}
+
+async function simpanSemua() {
+  try {
+    await apiCall({ action: 'simpanSemuaEvidence', data: evidenceData, oleh: currentUser });
+    alert('✅ Data berjaya disimpan ke pelayan.');
+  } catch(e) {
+    alert('⚠️ Simpan tempatan sahaja — API tidak bersambung.');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// PENGGUNA (Admin)
+// ═══════════════════════════════════════════════════════
+async function loadPengguna() {
+  try {
+    const res = await apiCall({ action: 'getPengguna' });
+    if (res.status === 'ok') renderPengguna(res.senarai);
+  } catch(e) {}
+}
+
+function renderPengguna(senarai) {
+  document.getElementById('tb-pengguna').innerHTML = senarai.map(p => `
+    <tr>
+      <td>${p.nama}</td>
+      <td><code>${p.id}</code></td>
+      <td>${p.peranan}</td>
+      <td>${p.kriteria == 0 ? 'Semua' : 'Kriteria ' + p.kriteria}</td>
+      <td><button class="btn btn-red btn-sm" onclick="hapusPengguna('${p.id}')">🗑️ Hapus</button></td>
+    </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:#888;">Tiada pengguna.</td></tr>';
+}
+
+function openModalTambahPengguna() {
+  document.getElementById('p-nama').value = '';
+  document.getElementById('p-id').value   = '';
+  document.getElementById('p-pass').value = '';
+  document.getElementById('modal-err').style.display = 'none';
+  document.getElementById('modal-pengguna').classList.add('open');
+}
+
+async function simpanPengguna() {
+  const nama     = document.getElementById('p-nama').value.trim();
+  const id       = document.getElementById('p-id').value.trim().toLowerCase().replace(/\s/g,'');
+  const pass     = document.getElementById('p-pass').value;
+  const peranan  = document.getElementById('p-role').value;
+  const kriteria = document.getElementById('p-kriteria').value;
+  const err      = document.getElementById('modal-err');
+
+  if (!nama || !id || !pass) { showErr(err, 'Sila isi semua maklumat.'); return; }
+
+  try {
+    const res = await apiCall({ action: 'tambahPengguna', nama, id, kataLaluan: pass, peranan, kriteria });
+    if (res.status === 'ok') {
+      closeModal('modal-pengguna');
+      loadPengguna();
+    } else { showErr(err, res.mesej); }
+  } catch(e) { showErr(err, 'Gagal sambung ke pelayan.'); }
+}
+
+async function hapusPengguna(id) {
+  if (!confirm('Hapus pengguna ' + id + '?')) return;
+  try {
+    const res = await apiCall({ action: 'hapusPengguna', id });
+    alert(res.mesej);
+    loadPengguna();
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════
+// LAPORAN
+// ═══════════════════════════════════════════════════════
+function cetakLaporan() {
+  // Jana kandungan laporan sebelum print
+  let html = `<h2 style="color:#1b4f72;margin-bottom:16px;">📄 Laporan Kemajuan APACC PKB 2026</h2>`;
+  html += `<div style="margin-bottom:16px;padding:12px;background:#f5f7fa;border-radius:8px;font-size:13px;">
+    <strong>📁 Folder OneDrive:</strong>
+    <a href="${ONEDRIVE_LINKS.main}" target="_blank" style="color:#2e86ab;margin-left:8px;">Main Folder</a> |
+    <a href="${ONEDRIVE_LINKS.secretariat}" target="_blank" style="color:#2e86ab;margin:0 8px;">Secretariat</a> |
+    <a href="${ONEDRIVE_LINKS.auditors}" target="_blank" style="color:#2e86ab;">Auditors</a>
+  </div>`;
+  html += `<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">
+    <thead><tr style="background:#1b4f72;color:white;">
+      <th style="padding:8px 12px;text-align:left;">Kriteria</th>
+      <th style="padding:8px 12px;text-align:center;">Skor</th>
+      <th style="padding:8px 12px;text-align:center;">Maks</th>
+      <th style="padding:8px 12px;text-align:center;">%</th>
+      <th style="padding:8px 12px;text-align:center;">Pingat</th>
+      <th style="padding:8px 12px;text-align:center;">OneDrive</th>
+    </tr></thead><tbody>`;
+  let jumlahSkor = 0;
+  KRITERIA_DATA.forEach((k, i) => {
+    let kSkor = 0;
+    k.indikator.forEach(ind => { kSkor += parseFloat((evidenceData[ind.id] || {}).markah || 0); });
+    jumlahSkor += kSkor;
+    const kPct = k.maxTotal > 0 ? Math.round((kSkor / k.maxTotal) * 100) : 0;
+    const m = getMedalPct(kPct);
+    const bg = i % 2 === 0 ? '#fff' : '#f8faff';
+    const odLink = ONEDRIVE_LINKS[k.id] ? `<a href="${ONEDRIVE_LINKS[k.id]}" target="_blank" style="color:#2e86ab;font-size:12px;">📁 Buka</a>` : '—';
+    html += `<tr style="background:${bg};">
+      <td style="padding:8px 12px;"><strong>Kriteria ${k.id}</strong> — ${k.nama}<br><span style="font-size:11px;color:#888;">${k.malay}</span></td>
+      <td style="padding:8px 12px;text-align:center;font-weight:700;color:#1b4f72;">${kSkor.toFixed(0)}</td>
+      <td style="padding:8px 12px;text-align:center;color:#888;">${k.maxTotal}</td>
+      <td style="padding:8px 12px;text-align:center;">${kPct}%</td>
+      <td style="padding:8px 12px;text-align:center;">${m.label}</td>
+      <td style="padding:8px 12px;text-align:center;">${odLink}</td>
+    </tr>`;
+  });
+  const totalPct = Math.round((jumlahSkor / JUMLAH_MAX) * 100);
+  const totalMedal = getMedal(jumlahSkor);
+  html += `<tr style="background:#1b4f72;color:white;font-weight:700;">
+    <td style="padding:10px 12px;">JUMLAH KESELURUHAN</td>
+    <td style="padding:10px 12px;text-align:center;">${jumlahSkor.toFixed(0)}</td>
+    <td style="padding:10px 12px;text-align:center;">${JUMLAH_MAX}</td>
+    <td style="padding:10px 12px;text-align:center;">${totalPct}%</td>
+    <td style="padding:10px 12px;text-align:center;" colspan="2">${totalMedal.label}</td>
+  </tr></tbody></table>`;
+  document.getElementById('laporan-content').innerHTML = html;
+  window.print();
+}
+
+function exportExcel() {
+  let csv = 'Kriteria,Kod Indikator,Nama Indikator,Markah Max,Markah Semasa,Status,Dokumen,Nota,Link OneDrive Kriteria\n';
+  KRITERIA_DATA.forEach(k => {
+    const odLink = ONEDRIVE_LINKS[k.id] || '';
+    k.indikator.forEach(ind => {
+      const ev = evidenceData[ind.id] || {};
+      csv += `"Kriteria ${k.id}","${ind.id}","${ind.nama}",${ind.max},${ev.markah||0},"${ev.status||'Tiada'}","${ev.dokumen||''}","${ev.nota||''}","${odLink}"\n`;
+    });
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'APACC_Evidence_Tracker_PKB.csv'; a.click();
+}
+
+// ═══════════════════════════════════════════════════════
+// UTILITY
+// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// BORANG DAPATAN AUDIT (AUDITOR)
+// ═══════════════════════════════════════════════════════
+let dapatanAudit = {}; // { indId: { markah, status, finding, kelemahan, syor } }
+
+function renderBorangAudit() {
+  const filterK = document.getElementById('audit-filter-kriteria').value;
+  const kritToShow = filterK ? KRITERIA_DATA.filter(k => k.id == filterK) : KRITERIA_DATA;
+  let html = '';
+
+  kritToShow.forEach(k => {
+    const odLink = ONEDRIVE_LINKS[k.id] ? `<a href="${ONEDRIVE_LINKS[k.id]}" target="_blank" style="font-size:11px;color:#2e86ab;margin-left:8px;text-decoration:none;">📁 OneDrive</a>` : '';
+    html += `
+      <div class="kriteria-block" style="margin-bottom:18px;">
+        <div class="kriteria-header" onclick="toggleKrit(this)" style="cursor:pointer;">
+          <div>
+            <div class="krit-title">Kriteria ${k.id}: ${k.nama} ${odLink}</div>
+            <div class="krit-sub">${k.malay} — ${k.indikator.length} indikator</div>
+          </div>
+          <div class="krit-right">
+            <span style="font-size:12px;color:#888;">${k.maxTotal} markah</span>
+          </div>
+        </div>
+        <div class="kriteria-body">`;
+
+    k.indikator.forEach(ind => {
+      const d = dapatanAudit[ind.id] || {};
+      const stVal = d.status || '';
+      const stColor = stVal === 'Conformance' ? '#27ae60' : stVal === 'Minor Non-Conformance' ? '#e67e22' : stVal === 'Major Non-Conformance' ? '#e74c3c' : '#888';
+      html += `
+        <div style="border:1.5px solid #e8ecf4;border-radius:10px;padding:16px;margin-bottom:14px;background:#fafbff;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <div>
+              <span style="font-weight:800;color:#1b4f72;font-size:13px;">${ind.id}</span>
+              <span style="font-size:13px;color:#333;margin-left:8px;">${ind.nama}</span>
+            </div>
+            <span style="font-size:12px;color:#888;">Maks: <strong>${ind.max}</strong></span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div>
+              <label style="font-size:11px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Markah Audit</label>
+              <input type="number" min="0" max="${ind.max}" value="${d.markah !== undefined ? d.markah : ''}"
+                style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;"
+                placeholder="0 – ${ind.max}"
+                oninput="kemaskiniDapatan('${ind.id}','markah',this.value)">
+            </div>
+            <div>
+              <label style="font-size:11px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Status</label>
+              <select style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;color:${stColor};"
+                onchange="kemaskiniDapatan('${ind.id}','status',this.value)">
+                <option value="" ${!stVal?'selected':''}>-- Pilih Status --</option>
+                <option value="Conformance" ${stVal==='Conformance'?'selected':''}>✅ Conformance</option>
+                <option value="Minor Non-Conformance" ${stVal==='Minor Non-Conformance'?'selected':''}>⚠️ Minor Non-Conformance</option>
+                <option value="Major Non-Conformance" ${stVal==='Major Non-Conformance'?'selected':''}>❌ Major Non-Conformance</option>
+                <option value="Observation" ${stVal==='Observation'?'selected':''}>🔍 Observation</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Penemuan / Finding</label>
+            <textarea rows="2" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:12px;resize:vertical;"
+              placeholder="Nyatakan dapatan audit untuk indikator ini..."
+              oninput="kemaskiniDapatan('${ind.id}','finding',this.value)">${d.finding || ''}</textarea>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label style="font-size:11px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Kelemahan</label>
+              <textarea rows="2" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:12px;resize:vertical;"
+                placeholder="Kelemahan yang dikenal pasti..."
+                oninput="kemaskiniDapatan('${ind.id}','kelemahan',this.value)">${d.kelemahan || ''}</textarea>
+            </div>
+            <div>
+              <label style="font-size:11px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Syor Penambahbaikan</label>
+              <textarea rows="2" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:12px;resize:vertical;"
+                placeholder="Cadangan tindakan susulan..."
+                oninput="kemaskiniDapatan('${ind.id}','syor',this.value)">${d.syor || ''}</textarea>
+            </div>
+          </div>
+        </div>`;
+    });
+    html += `</div></div>`;
+  });
+  document.getElementById('audit-borang-container').innerHTML = html || '<p style="color:#888;text-align:center;padding:20px;">Tiada indikator untuk dipapar.</p>';
+}
+
+function kemaskiniDapatan(indId, field, value) {
+  if (!dapatanAudit[indId]) dapatanAudit[indId] = {};
+  dapatanAudit[indId][field] = field === 'markah' ? parseFloat(value) || 0 : value;
+}
+
+async function simpanSemuaDapatan() {
+  const msg = document.getElementById('audit-save-msg');
+  msg.style.display = 'none';
+  const semua = Object.entries(dapatanAudit).map(([indId, d]) => ({
+    indId, ...d, auditorId: currentUser
+  }));
+  if (semua.length === 0) { alert('⚠️ Tiada dapatan untuk disimpan.'); return; }
+  try {
+    const res = await apiCall({ action: 'simpanDapatanAudit', semua, auditorId: currentUser });
+    if (res.status === 'ok') {
+      msg.style.display = 'inline';
+      setTimeout(() => { msg.style.display = 'none'; }, 3000);
+    } else { alert('❌ ' + (res.mesej || 'Gagal simpan')); }
+  } catch(e) { alert('❌ Gagal sambung ke pelayan.'); }
+}
+
+async function simpanRumusan() {
+  const el = document.getElementById('rumusan-save-msg');
+  const payload = {
+    action:     'simpanRumusanAudit',
+    auditorId:  currentUser,
+    auditor:    document.getElementById('rumusan-auditor').value.trim(),
+    tarikh:     document.getElementById('rumusan-tarikh').value,
+    kriteria:   document.getElementById('rumusan-kriteria').value,
+    keputusan:  document.getElementById('rumusan-keputusan').value,
+    finding:    document.getElementById('rumusan-finding').value.trim(),
+    kelemahan:  document.getElementById('rumusan-kelemahan').value.trim(),
+    syor:       document.getElementById('rumusan-syor').value.trim()
+  };
+  if (!payload.auditor || !payload.tarikh) {
+    el.textContent = '⚠️ Sila isi nama auditor dan tarikh audit.';
+    el.style.background = '#fff3cd'; el.style.color = '#856404';
+    el.style.borderLeft = '4px solid #ffc107';
+    el.style.display = 'block'; return;
+  }
+  try {
+    const res = await apiCall(payload);
+    if (res.status === 'ok') {
+      el.textContent = '✅ Rumusan berjaya disimpan!';
+      el.style.background = '#d1fae5'; el.style.color = '#065f46';
+      el.style.borderLeft = '4px solid #10b981';
+      el.style.display = 'block';
+    } else { el.textContent = '❌ ' + res.mesej; el.style.display = 'block'; }
+  } catch(e) { el.textContent = '❌ Gagal sambung ke pelayan.'; el.style.display = 'block'; }
+}
+
+async function loadDapatanAudit() {
+  try {
+    const res = await apiCall({ action: 'getDapatanAudit', auditorId: currentUser });
+    if (res.status === 'ok' && res.data) {
+      dapatanAudit = res.data;
+    }
+  } catch(e) {}
+}
+
+// AUDIT DALAMAN
+// ═══════════════════════════════════════════════════════
+function kemaskiniAudit(kritId, field, value) {
+  if (!auditData[kritId]) auditData[kritId] = {};
+  auditData[kritId][field] = field === 'markah' ? parseFloat(value) || 0 : value;
+}
+
+async function simpanAudit(kritId) {
+  const ad = auditData[kritId] || {};
+  const payload = {
+    action:   'simpanAudit',
+    userId:   currentUser,
+    kritId:   kritId,
+    markah:   ad.markah !== undefined ? ad.markah : 0,
+    nota:     ad.nota || ''
+  };
+  try {
+    const result = await apiCall(payload);
+    if (result.status === 'ok') {
+      // refresh jumlah bawah table
+      let jumlah = 0;
+      KRITERIA_DATA.forEach(k => { jumlah += parseFloat((auditData[k.id] || {}).markah || 0); });
+      const pct = JUMLAH_MAX > 0 ? ((jumlah / JUMLAH_MAX) * 100).toFixed(1) : '—';
+      document.getElementById('audit-jumlah-markah').textContent = jumlah.toFixed(0);
+      document.getElementById('audit-jumlah-pct').textContent    = pct + '%';
+    } else {
+      alert('❌ ' + (result.mesej || 'Gagal simpan'));
+    }
+  } catch(e) {
+    alert('❌ Gagal sambung ke pelayan.');
+  }
+}
+
+async function loadAuditData() {
+  try {
+    const result = await apiCall({ action: 'getAudit' });
+    if (result.status === 'ok' && result.audit) {
+      auditData = {};
+      result.audit.forEach(row => { auditData[row.kritId] = { markah: row.markah, nota: row.nota }; });
+    }
+  } catch(e) {}
+}
+
+function showPage(pgId) {
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  document.getElementById(pgId).style.display = 'block';
+  document.querySelectorAll('.nav-tab').forEach((t, i) => {
+    const pages = ['pg-dashboard','pg-checker','pg-prediction','pg-pengguna','pg-laporan'];
+    t.classList.toggle('active', pages[i] === pgId);
+  });
+}
+
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function showErr(el, msg) {
+  el.textContent = '⚠️ ' + msg;
+  el.style.display = 'block';
+  el.className = 'login-msg err';
+}
+
+// Tutup modal bila klik luar
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>
