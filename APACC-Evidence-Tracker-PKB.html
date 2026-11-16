@@ -34,9 +34,11 @@ body {
 .login-logo { font-size: 52px; margin-bottom: 10px; }
 .login-card h1 { font-size: 20px; color: #0d1b2a; margin-bottom: 4px; font-weight: 700; }
 .login-card .sub { font-size: 13px; color: #888; margin-bottom: 28px; }
-.role-tabs { display: flex; border: 2px solid #1b4f72; border-radius: 8px; overflow: hidden; margin-bottom: 22px; }
-.role-tab { flex: 1; padding: 10px; background: white; border: none; cursor: pointer; font-size: 13px; font-weight: bold; color: #1b4f72; transition: all 0.2s; }
+.role-tabs { display: flex; border: 2px solid #1b4f72; border-radius: 8px; overflow: hidden; margin-bottom: 22px; flex-wrap: nowrap; }
+.role-tab { flex: 1; padding: 8px 4px; background: white; border: none; border-right: 1px solid #d0dce8; cursor: pointer; font-size: 12px; font-weight: bold; color: #1b4f72; transition: all 0.2s; text-align: center; line-height: 1.3; }
+.role-tab:last-child { border-right: none; }
 .role-tab.active { background: #1b4f72; color: white; }
+.role-tab:hover:not(.active) { background: #eef4fb; }
 .form-field { margin-bottom: 14px; text-align: left; }
 .form-field label { display: block; font-size: 12px; font-weight: bold; color: #555; margin-bottom: 5px; }
 .form-field input, .form-field select {
@@ -288,12 +290,22 @@ tr:hover td { background: #fafbff; }
     </div>
   </div>
 
+  <!-- BLAST NOTIFICATION BANNER -->
+  <div id="blast-banner" style="display:none; background:linear-gradient(90deg,#1b4f72,#2e86ab); color:white; padding:10px 28px; font-size:13px; display:none; align-items:center; gap:12px; flex-wrap:wrap;">
+    <span style="font-size:16px;">📢</span>
+    <span id="blast-banner-text" style="flex:1;"></span>
+    <span id="blast-banner-time" style="font-size:11px; opacity:0.7;"></span>
+    <button onclick="document.getElementById('blast-banner').style.display='none'" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:12px;">✕</button>
+  </div>
+
   <!-- NAV TABS -->
   <div class="nav-bar" id="nav-bar">
     <div class="nav-tab active" onclick="showPage('pg-dashboard')">📊 Dashboard</div>
     <div class="nav-tab" onclick="showPage('pg-checker')">✅ Evidence Checker</div>
     <div class="nav-tab" onclick="showPage('pg-prediction')">🔮 Prediction</div>
+    <div class="nav-tab" onclick="showPage('pg-reminder')">🔔 Reminder</div>
     <div class="nav-tab auditor-only" onclick="showPage('pg-audit')" style="display:none;">📝 Borang Audit</div>
+    <div class="nav-tab admin-only" onclick="showPage('pg-blast')" style="display:none;">📢 Blast</div>
     <div class="nav-tab admin-only" onclick="showPage('pg-pengguna')" style="display:none;">👥 Pengguna</div>
     <div class="nav-tab admin-only" onclick="showPage('pg-laporan')" style="display:none;">📄 Laporan</div>
   </div>
@@ -613,6 +625,96 @@ tr:hover td { background: #fafbff; }
     </div>
 
     <!-- ══════════════════════════════
+         PAGE: REMINDER 🔔
+    ══════════════════════════════ -->
+    <div id="pg-reminder" class="page" style="display:none;">
+      <div class="card">
+        <h2>🔔 Reminder — Indikator Belum Lengkap</h2>
+        <div class="hint">Senarai semua indikator yang masih Tiada Bukti atau Separa Lengkap. Fokus kepada item ini untuk tingkatkan skor.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+          <select id="reminder-filter-k" onchange="renderReminder()" style="padding:8px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;">
+            <option value="">🔍 Semua Kriteria</option>
+            <option value="1">Kriteria 1</option><option value="2">Kriteria 2</option>
+            <option value="3">Kriteria 3</option><option value="4">Kriteria 4</option>
+            <option value="5">Kriteria 5</option><option value="6">Kriteria 6</option>
+            <option value="7">Kriteria 7</option>
+          </select>
+          <select id="reminder-filter-s" onchange="renderReminder()" style="padding:8px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;">
+            <option value="">📂 Semua Belum Lengkap</option>
+            <option value="Tiada">❌ Tiada Bukti Sahaja</option>
+            <option value="Separa">⚠️ Separa Sahaja</option>
+          </select>
+          <button class="btn btn-orange" onclick="generateWAText()">📱 Jana Teks WhatsApp</button>
+        </div>
+        <div id="reminder-summary" style="margin-bottom:14px;"></div>
+        <div id="reminder-container"></div>
+      </div>
+
+      <!-- WhatsApp Text Modal -->
+      <div class="modal-overlay" id="modal-wa">
+        <div class="modal-box">
+          <span class="modal-close" onclick="closeModal('modal-wa')">✕</span>
+          <div class="modal-title">📱 Teks Blast WhatsApp</div>
+          <div style="font-size:12px;color:#888;margin-bottom:10px;">Salin teks di bawah dan paste ke WhatsApp Group.</div>
+          <textarea id="wa-text" rows="16" readonly style="width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:12px;font-family:monospace;resize:vertical;background:#f8faff;"></textarea>
+          <div style="display:flex;gap:10px;margin-top:12px;">
+            <button class="btn btn-green" style="flex:1;" onclick="copyWAText()">📋 Salin Teks</button>
+            <button class="btn btn-outline" onclick="closeModal('modal-wa')">Tutup</button>
+          </div>
+          <div id="wa-copy-msg" style="font-size:12px;color:#27ae60;margin-top:8px;display:none;">✅ Teks berjaya disalin!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════
+         PAGE: BLAST (Admin) 📢
+    ══════════════════════════════ -->
+    <div id="pg-blast" class="page" style="display:none;">
+      <div class="card">
+        <h2>📢 Blast Notifikasi</h2>
+        <div class="hint">Hantar mesej penting kepada semua pengguna. Mesej akan muncul sebagai banner apabila mereka log masuk.</div>
+
+        <div style="margin-bottom:16px;">
+          <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:6px;">Jenis Notifikasi</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-blue btn-sm" id="blast-type-btn-info" onclick="setBlastType('info')">ℹ️ Info</button>
+            <button class="btn btn-orange btn-sm" id="blast-type-btn-warning" onclick="setBlastType('warning')">⚠️ Amaran</button>
+            <button class="btn btn-red btn-sm" id="blast-type-btn-urgent" onclick="setBlastType('urgent')">🚨 Urgent</button>
+            <button class="btn btn-green btn-sm" id="blast-type-btn-success" onclick="setBlastType('success')">✅ Pencapaian</button>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>Tajuk Mesej</label>
+          <input type="text" id="blast-tajuk" placeholder="Cth: Peringatan — Kemaskini bukti sebelum 30 Nov 2026">
+        </div>
+        <div class="form-field">
+          <label>Isi Mesej</label>
+          <textarea id="blast-isi" rows="4" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;resize:vertical;" placeholder="Nyatakan mesej lengkap untuk disampaikan kepada semua ahli team..."></textarea>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+          <button class="btn btn-blue" onclick="previewBlast()">👁️ Preview</button>
+          <button class="btn btn-green" onclick="hantarBlast()">📢 Hantar Blast</button>
+          <button class="btn btn-outline" onclick="clearBlast()">🗑️ Padam Blast Semasa</button>
+        </div>
+        <div id="blast-send-msg" style="display:none;margin-top:12px;padding:10px 14px;border-radius:6px;font-size:13px;"></div>
+
+        <!-- Preview -->
+        <div id="blast-preview-wrap" style="display:none;margin-top:20px;">
+          <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:8px;">PREVIEW:</div>
+          <div id="blast-preview-box" style="border-radius:8px;padding:14px 18px;font-size:13px;"></div>
+        </div>
+
+        <!-- Blast History -->
+        <div style="margin-top:28px;">
+          <h2 style="font-size:14px;margin-bottom:10px;">📋 Sejarah Blast</h2>
+          <div id="blast-history-list" style="font-size:13px;color:#888;">Tiada sejarah blast.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════
          PAGE: LAPORAN (Admin)
     ══════════════════════════════ -->
     <div id="pg-laporan" class="page" style="display:none;">
@@ -620,7 +722,7 @@ tr:hover td { background: #fafbff; }
         <h2>📄 Laporan Kemajuan APACC</h2>
         <div class="hint">Jana laporan kemajuan keseluruhan atau per kriteria.</div>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn btn-blue" onclick="cetakLaporan()">🖨️ Cetak / PDF</button>
+          <button class="btn btn-blue" onclick="cetakLaporanPDF()">🖨️ Cetak / Simpan PDF</button>
           <button class="btn btn-outline" onclick="exportExcel()">📥 Export Excel</button>
         </div>
         <div id="laporan-content" style="margin-top:20px;"></div>
@@ -701,7 +803,7 @@ tr:hover td { background: #fafbff; }
 // ═══════════════════════════════════════════════════════
 // TETAPAN API
 // ═══════════════════════════════════════════════════════
-const API_URL = 'https://script.google.com/macros/s/AKfycbyC32q0ZeudUxRBtja9fm-F_yBJKK81xepgZIZB2NmLz6SGx5HbarKV_8tmDj7T4SL8/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyT3y0BF_sqTt7GOABICHEqu9WUTOj6CY1tnNWRQlB7hSyvtwNIaFI08s15SqRJw8Oe/exec';
 
 // ═══════════════════════════════════════════════════════
 // DATA INDIKATOR APACC 7 KRITERIA
@@ -911,7 +1013,7 @@ let auditData = {};    // { kriteria_id: { markah, nota } }
 // ═══════════════════════════════════════════════════════
 function switchRole(role) {
   currentRole = role;
-  ['admin','ketua','ahli'].forEach(r => {
+  ['admin','ketua','ahli','auditor'].forEach(r => {
     document.getElementById('tab-' + r).classList.toggle('active', r === role);
   });
   document.getElementById('login-err').style.display = 'none';
@@ -972,6 +1074,7 @@ function startApp() {
     if (rk && kObj) rk.value = `Kriteria ${kObj.id} — ${kObj.nama}`;
   }
 
+  loadBlastActive();
   loadEvidenceData();
 }
 
@@ -1279,6 +1382,7 @@ function renderPrediction() {
 
   // Simulasi (jika semua markah penuh)
   const simSkor = JUMLAH_MAX;
+  const simPct  = ((simSkor / JUMLAH_MAX) * 100).toFixed(1);
   const simMed  = getMedal(simSkor);
   document.getElementById('sim-skor').textContent = simSkor;
   const simEl = document.getElementById('sim-medal');
@@ -1421,54 +1525,8 @@ async function hapusPengguna(id) {
 // ═══════════════════════════════════════════════════════
 // LAPORAN
 // ═══════════════════════════════════════════════════════
-function cetakLaporan() {
-  // Jana kandungan laporan sebelum print
-  let html = `<h2 style="color:#1b4f72;margin-bottom:16px;">📄 Laporan Kemajuan APACC PKB 2026</h2>`;
-  html += `<div style="margin-bottom:16px;padding:12px;background:#f5f7fa;border-radius:8px;font-size:13px;">
-    <strong>📁 Folder OneDrive:</strong>
-    <a href="${ONEDRIVE_LINKS.main}" target="_blank" style="color:#2e86ab;margin-left:8px;">Main Folder</a> |
-    <a href="${ONEDRIVE_LINKS.secretariat}" target="_blank" style="color:#2e86ab;margin:0 8px;">Secretariat</a> |
-    <a href="${ONEDRIVE_LINKS.auditors}" target="_blank" style="color:#2e86ab;">Auditors</a>
-  </div>`;
-  html += `<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">
-    <thead><tr style="background:#1b4f72;color:white;">
-      <th style="padding:8px 12px;text-align:left;">Kriteria</th>
-      <th style="padding:8px 12px;text-align:center;">Skor</th>
-      <th style="padding:8px 12px;text-align:center;">Maks</th>
-      <th style="padding:8px 12px;text-align:center;">%</th>
-      <th style="padding:8px 12px;text-align:center;">Pingat</th>
-      <th style="padding:8px 12px;text-align:center;">OneDrive</th>
-    </tr></thead><tbody>`;
-  let jumlahSkor = 0;
-  KRITERIA_DATA.forEach((k, i) => {
-    let kSkor = 0;
-    k.indikator.forEach(ind => { kSkor += parseFloat((evidenceData[ind.id] || {}).markah || 0); });
-    jumlahSkor += kSkor;
-    const kPct = k.maxTotal > 0 ? Math.round((kSkor / k.maxTotal) * 100) : 0;
-    const m = getMedalPct(kPct);
-    const bg = i % 2 === 0 ? '#fff' : '#f8faff';
-    const odLink = ONEDRIVE_LINKS[k.id] ? `<a href="${ONEDRIVE_LINKS[k.id]}" target="_blank" style="color:#2e86ab;font-size:12px;">📁 Buka</a>` : '—';
-    html += `<tr style="background:${bg};">
-      <td style="padding:8px 12px;"><strong>Kriteria ${k.id}</strong> — ${k.nama}<br><span style="font-size:11px;color:#888;">${k.malay}</span></td>
-      <td style="padding:8px 12px;text-align:center;font-weight:700;color:#1b4f72;">${kSkor.toFixed(0)}</td>
-      <td style="padding:8px 12px;text-align:center;color:#888;">${k.maxTotal}</td>
-      <td style="padding:8px 12px;text-align:center;">${kPct}%</td>
-      <td style="padding:8px 12px;text-align:center;">${m.label}</td>
-      <td style="padding:8px 12px;text-align:center;">${odLink}</td>
-    </tr>`;
-  });
-  const totalPct = Math.round((jumlahSkor / JUMLAH_MAX) * 100);
-  const totalMedal = getMedal(jumlahSkor);
-  html += `<tr style="background:#1b4f72;color:white;font-weight:700;">
-    <td style="padding:10px 12px;">JUMLAH KESELURUHAN</td>
-    <td style="padding:10px 12px;text-align:center;">${jumlahSkor.toFixed(0)}</td>
-    <td style="padding:10px 12px;text-align:center;">${JUMLAH_MAX}</td>
-    <td style="padding:10px 12px;text-align:center;">${totalPct}%</td>
-    <td style="padding:10px 12px;text-align:center;" colspan="2">${totalMedal.label}</td>
-  </tr></tbody></table>`;
-  document.getElementById('laporan-content').innerHTML = html;
-  window.print();
-}
+// cetakLaporan() — alias tanpa print (renderLaporan() di bawah mengandungi logik penuh)
+function cetakLaporan() { renderLaporan(); }
 
 function exportExcel() {
   let csv = 'Kriteria,Kod Indikator,Nama Indikator,Markah Max,Markah Semasa,Status,Dokumen,Nota,Link OneDrive Kriteria\n';
@@ -1680,9 +1738,12 @@ function showPage(pgId) {
   document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
   document.getElementById(pgId).style.display = 'block';
   document.querySelectorAll('.nav-tab').forEach((t, i) => {
-    const pages = ['pg-dashboard','pg-checker','pg-prediction','pg-pengguna','pg-laporan'];
+    const pages = ['pg-dashboard','pg-checker','pg-prediction','pg-reminder','pg-audit','pg-blast','pg-pengguna','pg-laporan'];
     t.classList.toggle('active', pages[i] === pgId);
   });
+  if (pgId === 'pg-reminder') renderReminder();
+  if (pgId === 'pg-blast')    renderBlastHistory();
+  if (pgId === 'pg-laporan')  renderLaporan();
 }
 
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
@@ -1700,6 +1761,290 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
     if (e.target === this) this.classList.remove('open');
   });
 });
+
+// ═══════════════════════════════════════════════════════
+// 🔔 REMINDER — Indikator Belum Lengkap
+// ═══════════════════════════════════════════════════════
+function renderReminder() {
+  const filterK = document.getElementById('reminder-filter-k').value;
+  const filterS = document.getElementById('reminder-filter-s').value;
+
+  let tiada = [], separa = [];
+  const kritToShow = filterK ? KRITERIA_DATA.filter(k => k.id == filterK) : KRITERIA_DATA;
+
+  kritToShow.forEach(k => {
+    k.indikator.forEach(ind => {
+      const ev = evidenceData[ind.id] || {};
+      const st = ev.status || 'Tiada';
+      if (st === 'Tiada') tiada.push({ k, ind, ev });
+      else if (st === 'Separa') separa.push({ k, ind, ev });
+    });
+  });
+
+  const showTiada  = !filterS || filterS === 'Tiada';
+  const showSepara = !filterS || filterS === 'Separa';
+  const totalMarkahMissed = [...(showTiada ? tiada : []), ...(showSepara ? separa : [])]
+    .reduce((s, x) => s + x.ind.max, 0);
+
+  // Summary bar
+  document.getElementById('reminder-summary').innerHTML = `
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <div style="background:#fde8e8;border:1.5px solid #e74c3c;border-radius:10px;padding:12px 18px;text-align:center;min-width:120px;">
+        <div style="font-size:24px;font-weight:800;color:#e74c3c;">${tiada.length}</div>
+        <div style="font-size:12px;color:#888;">❌ Tiada Bukti</div>
+      </div>
+      <div style="background:#fff3e0;border:1.5px solid #e67e22;border-radius:10px;padding:12px 18px;text-align:center;min-width:120px;">
+        <div style="font-size:24px;font-weight:800;color:#e67e22;">${separa.length}</div>
+        <div style="font-size:12px;color:#888;">⚠️ Separa Lengkap</div>
+      </div>
+      <div style="background:#fef9e7;border:1.5px solid #d4ac0d;border-radius:10px;padding:12px 18px;text-align:center;min-width:120px;">
+        <div style="font-size:24px;font-weight:800;color:#c0932e;">${totalMarkahMissed}</div>
+        <div style="font-size:12px;color:#888;">📉 Markah Terdedah</div>
+      </div>
+    </div>`;
+
+  let html = '';
+  if (showTiada && tiada.length > 0) {
+    html += `<div style="margin-bottom:20px;">
+      <div style="font-weight:700;color:#e74c3c;font-size:14px;margin-bottom:10px;padding:8px 14px;background:#fde8e8;border-radius:8px;border-left:4px solid #e74c3c;">
+        ❌ Tiada Bukti (${tiada.length} indikator)
+      </div>
+      <table><thead><tr><th>Kod</th><th>Indikator</th><th>Kriteria</th><th style="text-align:center;">Maks</th><th>Tindakan</th></tr></thead><tbody>`;
+    tiada.forEach(({ k, ind }) => {
+      html += `<tr>
+        <td><strong style="color:#e74c3c;">${ind.id}</strong></td>
+        <td>${ind.nama}</td>
+        <td style="font-size:12px;color:#888;">K${k.id}: ${k.nama}</td>
+        <td style="text-align:center;font-weight:700;">${ind.max}</td>
+        <td><button class="btn btn-outline btn-sm" onclick="showPage('pg-checker');setTimeout(()=>{openModalBukti('${ind.id}','${ind.nama.replace(/'/g,'')}',${ind.max})},300)">✏️ Kemaskini</button></td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+
+  if (showSepara && separa.length > 0) {
+    html += `<div>
+      <div style="font-weight:700;color:#e67e22;font-size:14px;margin-bottom:10px;padding:8px 14px;background:#fff3e0;border-radius:8px;border-left:4px solid #e67e22;">
+        ⚠️ Separa Lengkap (${separa.length} indikator)
+      </div>
+      <table><thead><tr><th>Kod</th><th>Indikator</th><th>Kriteria</th><th style="text-align:center;">Maks</th><th style="text-align:center;">Semasa</th><th>Tindakan</th></tr></thead><tbody>`;
+    separa.forEach(({ k, ind, ev }) => {
+      html += `<tr>
+        <td><strong style="color:#e67e22;">${ind.id}</strong></td>
+        <td>${ind.nama}${ev.nota ? `<div style="font-size:11px;color:#aaa;font-style:italic;">${ev.nota.substring(0,50)}${ev.nota.length>50?'...':''}</div>` : ''}</td>
+        <td style="font-size:12px;color:#888;">K${k.id}: ${k.nama}</td>
+        <td style="text-align:center;font-weight:700;">${ind.max}</td>
+        <td style="text-align:center;color:#1b4f72;font-weight:700;">${ev.markah || 0}</td>
+        <td><button class="btn btn-outline btn-sm" onclick="showPage('pg-checker');setTimeout(()=>{openModalBukti('${ind.id}','${ind.nama.replace(/'/g,'')}',${ind.max})},300)">✏️ Kemaskini</button></td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+
+  if (html === '') html = '<div style="text-align:center;padding:30px;color:#27ae60;font-size:14px;">🎉 Semua indikator sudah lengkap!</div>';
+  document.getElementById('reminder-container').innerHTML = html;
+}
+
+function generateWAText() {
+  let tiada = [], separa = [];
+  KRITERIA_DATA.forEach(k => {
+    k.indikator.forEach(ind => {
+      const st = (evidenceData[ind.id] || {}).status || 'Tiada';
+      if (st === 'Tiada')  tiada.push(`  • ${ind.id}: ${ind.nama}`);
+      else if (st === 'Separa') separa.push(`  • ${ind.id}: ${ind.nama}`);
+    });
+  });
+
+  const now = new Date().toLocaleDateString('ms-MY', { day:'2-digit', month:'long', year:'numeric' });
+  let totalSkor = 0;
+  KRITERIA_DATA.forEach(k => k.indikator.forEach(ind => { totalSkor += parseFloat((evidenceData[ind.id]||{}).markah||0); }));
+  const pct = ((totalSkor / JUMLAH_MAX) * 100).toFixed(1);
+  const medal = getMedal(totalSkor);
+
+  let txt = `📢 *PERINGATAN APACC PKB — ${now}*\n`;
+  txt += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+  txt += `📊 Skor Semasa: *${totalSkor.toFixed(0)} / ${JUMLAH_MAX}* (${pct}%)\n`;
+  txt += `🏅 Ramalan Pingat: *${medal.label}*\n\n`;
+  if (tiada.length > 0) {
+    txt += `❌ *TIADA BUKTI (${tiada.length} indikator):*\n${tiada.join('\n')}\n\n`;
+  }
+  if (separa.length > 0) {
+    txt += `⚠️ *SEPARA LENGKAP (${separa.length} indikator):*\n${separa.join('\n')}\n\n`;
+  }
+  txt += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+  txt += `🔗 Kemaskini di: https://zian160480.github.io/apacc-tracker/\n`;
+  txt += `_Sila lengkapkan bukti sebelum tarikh akhir. Terima kasih._`;
+
+  document.getElementById('wa-text').value = txt;
+  document.getElementById('wa-copy-msg').style.display = 'none';
+  openModal('modal-wa');
+}
+
+function copyWAText() {
+  const ta = document.getElementById('wa-text');
+  ta.select(); ta.setSelectionRange(0, 99999);
+  document.execCommand('copy');
+  document.getElementById('wa-copy-msg').style.display = 'block';
+  setTimeout(() => { document.getElementById('wa-copy-msg').style.display = 'none'; }, 2500);
+}
+
+// ═══════════════════════════════════════════════════════
+// 📢 BLAST NOTIFIKASI
+// ═══════════════════════════════════════════════════════
+let blastType = 'info';
+let blastHistory = JSON.parse(localStorage.getItem('apacc_blast_history') || '[]');
+
+const BLAST_STYLES = {
+  info:    { bg: 'linear-gradient(90deg,#1b4f72,#2e86ab)', color: 'white',   icon: 'ℹ️', border: '#2e86ab' },
+  warning: { bg: '#fff3e0', color: '#7d4a10',  icon: '⚠️', border: '#e67e22' },
+  urgent:  { bg: '#fde8e8', color: '#721c24',  icon: '🚨', border: '#e74c3c' },
+  success: { bg: '#d4edda', color: '#155724',  icon: '✅', border: '#27ae60' },
+};
+
+function setBlastType(type) {
+  blastType = type;
+  ['info','warning','urgent','success'].forEach(t => {
+    const btn = document.getElementById('blast-type-btn-' + t);
+    if (btn) btn.style.opacity = t === type ? '1' : '0.45';
+  });
+}
+
+function previewBlast() {
+  const tajuk = document.getElementById('blast-tajuk').value.trim();
+  const isi   = document.getElementById('blast-isi').value.trim();
+  if (!tajuk && !isi) { return; }
+  const s = BLAST_STYLES[blastType];
+  const wrap = document.getElementById('blast-preview-wrap');
+  const box  = document.getElementById('blast-preview-box');
+  box.style.background  = s.bg;
+  box.style.color       = s.color;
+  box.style.borderLeft  = `4px solid ${s.border}`;
+  box.innerHTML = `<div style="font-weight:700;font-size:14px;margin-bottom:4px;">${s.icon} ${tajuk}</div><div style="font-size:13px;opacity:0.9;">${isi}</div>`;
+  wrap.style.display = 'block';
+}
+
+function hantarBlast() {
+  const tajuk = document.getElementById('blast-tajuk').value.trim();
+  const isi   = document.getElementById('blast-isi').value.trim();
+  const msg   = document.getElementById('blast-send-msg');
+  if (!tajuk) { msg.textContent = '⚠️ Sila isi tajuk mesej.'; msg.style.background='#fff3cd'; msg.style.color='#856404'; msg.style.display='block'; return; }
+
+  const blast = { tajuk, isi, type: blastType, masa: new Date().toISOString(), oleh: currentNama };
+  localStorage.setItem('apacc_blast_active', JSON.stringify(blast));
+  blastHistory.unshift(blast);
+  if (blastHistory.length > 10) blastHistory.pop();
+  localStorage.setItem('apacc_blast_history', JSON.stringify(blastHistory));
+
+  showBlastBanner(blast);
+  msg.textContent = '✅ Blast berjaya dihantar! Banner telah dipaparkan kepada semua pengguna yang sedang login.';
+  msg.style.background = '#d4edda'; msg.style.color = '#155724'; msg.style.display = 'block';
+  renderBlastHistory();
+  setTimeout(() => { msg.style.display = 'none'; }, 4000);
+}
+
+function clearBlast() {
+  localStorage.removeItem('apacc_blast_active');
+  document.getElementById('blast-banner').style.display = 'none';
+  const msg = document.getElementById('blast-send-msg');
+  msg.textContent = '🗑️ Blast semasa telah dipadam.';
+  msg.style.background = '#f0f0f0'; msg.style.color = '#555'; msg.style.display = 'block';
+  setTimeout(() => { msg.style.display = 'none'; }, 2500);
+}
+
+function showBlastBanner(blast) {
+  if (!blast) return;
+  const s = BLAST_STYLES[blast.type] || BLAST_STYLES.info;
+  const banner = document.getElementById('blast-banner');
+  banner.style.background = s.bg;
+  banner.style.color = s.color;
+  document.getElementById('blast-banner-text').innerHTML = `<strong>${s.icon} ${blast.tajuk}</strong>${blast.isi ? ' — ' + blast.isi : ''}`;
+  const d = new Date(blast.masa);
+  document.getElementById('blast-banner-time').textContent = d.toLocaleDateString('ms-MY',{day:'2-digit',month:'short',year:'numeric'}) + ' ' + d.toLocaleTimeString('ms-MY',{hour:'2-digit',minute:'2-digit'});
+  banner.style.display = 'flex';
+}
+
+function renderBlastHistory() {
+  blastHistory = JSON.parse(localStorage.getItem('apacc_blast_history') || '[]');
+  const el = document.getElementById('blast-history-list');
+  if (!el) return;
+  if (blastHistory.length === 0) { el.textContent = 'Tiada sejarah blast.'; return; }
+  el.innerHTML = blastHistory.map((b, i) => {
+    const s = BLAST_STYLES[b.type] || BLAST_STYLES.info;
+    const d = new Date(b.masa);
+    return `<div style="padding:10px 14px;border-radius:8px;margin-bottom:8px;border-left:4px solid ${s.border};background:${i===0?'#f8faff':'#fff'};border:1px solid #e8ecf4;border-left-width:4px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-weight:700;">${s.icon} ${b.tajuk}</span>
+        <span style="font-size:11px;color:#aaa;">${d.toLocaleDateString('ms-MY')} — oleh ${b.oleh||'Admin'}</span>
+      </div>
+      ${b.isi ? `<div style="font-size:12px;color:#555;margin-top:3px;">${b.isi}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// Load blast semasa bila login
+function loadBlastActive() {
+  const active = localStorage.getItem('apacc_blast_active');
+  if (active) {
+    try { showBlastBanner(JSON.parse(active)); } catch(e) {}
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// 🖨️ CETAK / PDF — Versi Lengkap
+// ═══════════════════════════════════════════════════════
+function renderLaporan() {
+  // Jana kandungan laporan tanpa print
+  let html = `<h2 style="color:#1b4f72;margin-bottom:16px;">📄 Laporan Kemajuan APACC PKB 2026</h2>`;
+  html += `<div style="margin-bottom:16px;padding:12px;background:#f5f7fa;border-radius:8px;font-size:13px;">
+    <strong>📁 Folder OneDrive:</strong>
+    <a href="${ONEDRIVE_LINKS.main}" target="_blank" style="color:#2e86ab;margin-left:8px;">Main Folder</a> |
+    <a href="${ONEDRIVE_LINKS.secretariat}" target="_blank" style="color:#2e86ab;margin:0 8px;">Secretariat</a> |
+    <a href="${ONEDRIVE_LINKS.auditors}" target="_blank" style="color:#2e86ab;">Auditors</a>
+  </div>`;
+  html += `<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">
+    <thead><tr style="background:#1b4f72;color:white;">
+      <th style="padding:8px 12px;text-align:left;">Kriteria</th>
+      <th style="padding:8px 12px;text-align:center;">Skor</th>
+      <th style="padding:8px 12px;text-align:center;">Maks</th>
+      <th style="padding:8px 12px;text-align:center;">%</th>
+      <th style="padding:8px 12px;text-align:center;">Pingat</th>
+      <th style="padding:8px 12px;text-align:center;">OneDrive</th>
+    </tr></thead><tbody>`;
+  let jumlahSkor = 0;
+  KRITERIA_DATA.forEach((k, i) => {
+    let kSkor = 0;
+    k.indikator.forEach(ind => { kSkor += parseFloat((evidenceData[ind.id] || {}).markah || 0); });
+    jumlahSkor += kSkor;
+    const kPct = k.maxTotal > 0 ? Math.round((kSkor / k.maxTotal) * 100) : 0;
+    const m = getMedalPct(kPct);
+    const bg = i % 2 === 0 ? '#fff' : '#f8faff';
+    const odLink = ONEDRIVE_LINKS[k.id] ? `<a href="${ONEDRIVE_LINKS[k.id]}" target="_blank" style="color:#2e86ab;font-size:12px;">📁 Buka</a>` : '—';
+    html += `<tr style="background:${bg};">
+      <td style="padding:8px 12px;"><strong>Kriteria ${k.id}</strong> — ${k.nama}<br><span style="font-size:11px;color:#888;">${k.malay}</span></td>
+      <td style="padding:8px 12px;text-align:center;font-weight:700;color:#1b4f72;">${kSkor.toFixed(0)}</td>
+      <td style="padding:8px 12px;text-align:center;color:#888;">${k.maxTotal}</td>
+      <td style="padding:8px 12px;text-align:center;">${kPct}%</td>
+      <td style="padding:8px 12px;text-align:center;">${m.label}</td>
+      <td style="padding:8px 12px;text-align:center;">${odLink}</td>
+    </tr>`;
+  });
+  const totalPct = Math.round((jumlahSkor / JUMLAH_MAX) * 100);
+  const totalMedal = getMedal(jumlahSkor);
+  html += `<tr style="background:#1b4f72;color:white;font-weight:700;">
+    <td style="padding:10px 12px;">JUMLAH KESELURUHAN</td>
+    <td style="padding:10px 12px;text-align:center;">${jumlahSkor.toFixed(0)}</td>
+    <td style="padding:10px 12px;text-align:center;">${JUMLAH_MAX}</td>
+    <td style="padding:10px 12px;text-align:center;">${totalPct}%</td>
+    <td style="padding:10px 12px;text-align:center;" colspan="2">${totalMedal.label}</td>
+  </tr></tbody></table>`;
+  document.getElementById('laporan-content').innerHTML = html;
+}
+
+function cetakLaporanPDF() {
+  renderLaporan();
+  setTimeout(() => window.print(), 400);
+}
+
 </script>
 </body>
 </html>
