@@ -34,11 +34,19 @@ body {
 .login-logo { font-size: 52px; margin-bottom: 10px; }
 .login-card h1 { font-size: 20px; color: #0d1b2a; margin-bottom: 4px; font-weight: 700; }
 .login-card .sub { font-size: 13px; color: #888; margin-bottom: 28px; }
-.role-tabs { display: flex; border: 2px solid #1b4f72; border-radius: 8px; overflow: hidden; margin-bottom: 22px; flex-wrap: nowrap; }
-.role-tab { flex: 1; padding: 8px 4px; background: white; border: none; border-right: 1px solid #d0dce8; cursor: pointer; font-size: 12px; font-weight: bold; color: #1b4f72; transition: all 0.2s; text-align: center; line-height: 1.3; }
-.role-tab:last-child { border-right: none; }
-.role-tab.active { background: #1b4f72; color: white; }
-.role-tab:hover:not(.active) { background: #eef4fb; }
+.role-tabs { display: flex; border: 2px solid #1b4f72; border-radius: 8px; overflow: hidden; margin-bottom: 22px; }
+.role-tab {
+  flex: 1; padding: 8px 4px;
+  background-color: #ffffff;
+  border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #d0dce8;
+  outline: none;
+  cursor: pointer; font-size: 12px; font-weight: bold; color: #1b4f72;
+  transition: background-color 0.2s, color 0.2s;
+  text-align: center; line-height: 1.3;
+}
+.role-tab:last-child { border-right: 0; }
+.role-tab.active { background-color: #1b4f72 !important; color: #ffffff !important; }
+.role-tab:not(.active):hover { background-color: #eef4fb; }
 .form-field { margin-bottom: 14px; text-align: left; }
 .form-field label { display: block; font-size: 12px; font-weight: bold; color: #555; margin-bottom: 5px; }
 .form-field input, .form-field select {
@@ -1014,7 +1022,17 @@ let auditData = {};    // { kriteria_id: { markah, nota } }
 function switchRole(role) {
   currentRole = role;
   ['admin','ketua','ahli','auditor'].forEach(r => {
-    document.getElementById('tab-' + r).classList.toggle('active', r === role);
+    const el = document.getElementById('tab-' + r);
+    if (!el) return;
+    if (r === role) {
+      el.classList.add('active');
+      el.style.backgroundColor = '#1b4f72';
+      el.style.color = '#ffffff';
+    } else {
+      el.classList.remove('active');
+      el.style.backgroundColor = '#ffffff';
+      el.style.color = '#1b4f72';
+    }
   });
   document.getElementById('login-err').style.display = 'none';
 }
